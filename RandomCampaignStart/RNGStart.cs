@@ -123,7 +123,6 @@ namespace RandomCampaignStart
 
                 // memoize dictionary of tonnages since we may be looping a lot
                 var mechTonnages = new Dictionary<string, float>();
-
                 foreach (var kvp in __instance.DataManager.ChassisDefs)
                 {
                     mechTonnages.Add(kvp.Key, kvp.Value.Tonnage);
