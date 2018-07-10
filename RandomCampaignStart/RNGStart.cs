@@ -4,7 +4,6 @@ using System.Reflection;
 using BattleTech;
 using Harmony;
 using Newtonsoft.Json;
-using static RandomCampaignStart.ModSettings;
 using System.Linq;
 
 // ReSharper disable CollectionNeverUpdated.Global
@@ -96,10 +95,7 @@ namespace RandomCampaignStart
                     pilots.AddRange(__instance.PilotGenerator.GeneratePilots(RngStart.Settings.NumberProceduralPilots, 1, 0, out _));
 
                 // actually add the pilots to the SimGameState
-                foreach (var pilotDef in pilots)
-                    __instance.AddPilotToRoster(pilotDef, true);
-
-
+                pilots.Select(x => __instance.AddPilotToRoster(x, true));
 
             }
 
@@ -133,13 +129,13 @@ namespace RandomCampaignStart
                     mechTonnages.Add(kvp.Key, kvp.Value.Tonnage);
                 }
 
-
                 while (lance.Count < RngStart.Settings.MinimumLanceSize)
                 {
                     var mechDef = new MechDef(__instance.DataManager.MechDefs.Get(lance[x]), __instance.GenerateSimGameUID());
                     if (RngStart.Settings.MaximumStartingWeight < currentLanceWeight + mechDef.Chassis.Tonnage)
                     {
                         __instance.AddMech(baySlot, mechDef, true, true, false);
+                        currentLanceWeight += mechDef.Chassis.Tonnage;
                         baySlot++;
                     }
 
