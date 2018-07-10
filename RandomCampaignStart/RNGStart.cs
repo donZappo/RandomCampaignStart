@@ -136,16 +136,17 @@ namespace RandomCampaignStart
                     legacyLance.AddRange(GetRandomSubList(RngStart.Settings.HeavyMechsPossible, RngStart.Settings.NumberHeavyMechs));
                     legacyLance.AddRange(GetRandomSubList(RngStart.Settings.MediumMechsPossible, RngStart.Settings.NumberMediumMechs));
                     legacyLance.AddRange(GetRandomSubList(RngStart.Settings.LightMechsPossible, RngStart.Settings.NumberLightMechs));
-
-                        var mechDef = new MechDef(__instance.DataManager.MechDefs.Get(mechIds[i]), __instance.GenerateSimGameUID());
+                    for (var i = 0; i < legacyLance.Count; i++)
+                    {
+                        var mechDef = new MechDef(__instance.DataManager.MechDefs.Get(legacyLance[i]), __instance.GenerateSimGameUID());
                         __instance.AddMech(baySlot, mechDef, true, true, false);
                         // check to see if we're on the last mechbay and if we have more mechs to add
                         // if so, store the mech at index 5 before next iteration.
-                        if (baySlot == 5 && i + 1 < mechIds.Count)
+                        if (baySlot == 5 && i + 1 < legacyLance.Count)
                             __instance.UnreadyMech(5, mechDef);
                         else
                             baySlot++;
-
+                    }
                 }
                 else
                 {
