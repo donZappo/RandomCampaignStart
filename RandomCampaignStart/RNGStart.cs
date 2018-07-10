@@ -128,73 +128,83 @@ namespace RandomCampaignStart
                     mechTonnages.Add(kvp.Key, kvp.Value.Tonnage);
                 }
 
-                while (lance.Count < RngStart.Settings.MinimumLanceSize)
+                if (RngStart.Settings.NumberAssaultMechs + RngStart.Settings.NumberHeavyMechs +
+                    RngStart.Settings.NumberMediumMechs + RngStart.Settings.NumberLightMechs > 0)
                 {
-                    var mechDef = new MechDef(__instance.DataManager.MechDefs.Get(lance[x]), __instance.GenerateSimGameUID());
-                    if (RngStart.Settings.MaximumStartingWeight < currentLanceWeight + mechDef.Chassis.Tonnage)
+                    lance.AddRange(GetRandomSubList(RngStart.Settings.AssaultMechsPossible, RngStart.Settings.NumberAssaultMechs));
+                    lance.AddRange(GetRandomSubList(RngStart.Settings.HeavyMechsPossible, RngStart.Settings.NumberHeavyMechs));
+                    lance.AddRange(GetRandomSubList(RngStart.Settings.MediumMechsPossible, RngStart.Settings.NumberMediumMechs));
+                    lance.AddRange(GetRandomSubList(RngStart.Settings.LightMechsPossible, RngStart.Settings.NumberLightMechs));
+                }
+                else
+                {
+                    while (lance.Count < RngStart.Settings.MinimumLanceSize)
                     {
-                        __instance.AddMech(baySlot, mechDef, true, true, false);
-                        currentLanceWeight += mechDef.Chassis.Tonnage;
-                        baySlot++;
-                    }
+                        var mechDef = new MechDef(__instance.DataManager.MechDefs.Get(lance[x]), __instance.GenerateSimGameUID());
+                        if (RngStart.Settings.MaximumStartingWeight < currentLanceWeight + mechDef.Chassis.Tonnage)
+                        {
+                            __instance.AddMech(baySlot, mechDef, true, true, false);
+                            currentLanceWeight += mechDef.Chassis.Tonnage;
+                            baySlot++;
+                        }
 
-                    // check to see if we're on the last mechbay and if we have more mechs to add
-                    // if so, store the mech at index 5 before next iteration.
-                    if (baySlot == 5 && x + 1 < lance.Count)
-                        __instance.UnreadyMech(5, mechDef);
-                    else
-                        baySlot++;
+                        // check to see if we're on the last mechbay and if we have more mechs to add
+                        // if so, store the mech at index 5 before next iteration.
+                        if (baySlot == 5 && x + 1 < lance.Count)
+                            __instance.UnreadyMech(5, mechDef);
+                        else
+                            baySlot++;
+                    }
+                }
+            }
+        }
+
+        internal class ModSettings
+        {
+            public List<string> AssaultMechsPossible = new List<string>();
+            public List<string> HeavyMechsPossible = new List<string>();
+            public List<string> LightMechsPossible = new List<string>();
+            public List<string> MediumMechsPossible = new List<string>();
+
+            public int NumberAssaultMechs = 0;
+            public int NumberHeavyMechs = 0;
+            public int NumberLightMechs = 3;
+            public int NumberMediumMechs = 1;
+
+            public float MinimumStartingWeight = 200;
+            public float MaximumStartingWeight = 300;
+            public int MinimumLanceSize = 4;
+
+            public List<string> StartingRonin = new List<string>();
+
+            public int NumberProceduralPilots = 0;
+            public int NumberRandomRonin = 4;
+
+            public bool RemoveAncestralMech = false;
+
+            public string ModDirectory = string.Empty;
+            public bool Debug = false;
+        }
+
+        public static class RngStart
+        {
+            internal static ModSettings Settings;
+
+            public static void Init(string modDir, string modSettings)
+            {
+                var harmony = HarmonyInstance.Create("io.github.mpstark.RandomCampaignStart");
+                harmony.PatchAll(Assembly.GetExecutingAssembly());
+
+                // read settings
+                try
+                {
+                    Settings = JsonConvert.DeserializeObject<ModSettings>(modSettings);
+                    Settings.ModDirectory = modDir;
+                }
+                catch (Exception)
+                {
+                    Settings = new ModSettings();
                 }
             }
         }
     }
-
-    internal class ModSettings
-    {
-        public List<string> AssaultMechsPossible = new List<string>();
-        public List<string> HeavyMechsPossible = new List<string>();
-        public List<string> LightMechsPossible = new List<string>();
-        public List<string> MediumMechsPossible = new List<string>();
-
-        public int NumberAssaultMechs = 0;
-        public int NumberHeavyMechs = 0;
-        public int NumberLightMechs = 3;
-        public int NumberMediumMechs = 1;
-
-        public float MinimumStartingWeight = 200;
-        public float MaximumStartingWeight = 300;
-        public int MinimumLanceSize = 4;
-
-        public List<string> StartingRonin = new List<string>();
-
-        public int NumberProceduralPilots = 0;
-        public int NumberRandomRonin = 4;
-
-        public bool RemoveAncestralMech = false;
-
-        public string ModDirectory = string.Empty;
-        public bool Debug = false;
-    }
-
-    public static class RngStart
-    {
-        internal static ModSettings Settings;
-
-        public static void Init(string modDir, string modSettings)
-        {
-            var harmony = HarmonyInstance.Create("io.github.mpstark.RandomCampaignStart");
-            harmony.PatchAll(Assembly.GetExecutingAssembly());
-
-            // read settings
-            try
-            {
-                Settings = JsonConvert.DeserializeObject<ModSettings>(modSettings);
-                Settings.ModDirectory = modDir;
-            }
-            catch (Exception)
-            {
-                Settings = new ModSettings();
-            }
-        }
-    }
-}
