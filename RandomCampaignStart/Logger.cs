@@ -1,5 +1,6 @@
 ﻿using System;
-using System.IO; 
+using System.IO;
+using static RandomCampaignStart.SimGameState_FirstTimeInitializeDataFromDefs_Patch;
 
 namespace RandomCampaignStart
 {

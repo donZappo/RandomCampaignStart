@@ -106,9 +106,8 @@ namespace RandomCampaignStart
             {
                 var lance = new List<string>();
                 var legacyLance = new List<string>();
-                //lance.AddRange(__instance.DataManager.ChassisDefs.Keys);
                 float currentLanceWeight = 0;
-                int x = 0;
+                //int x = 0;
                 var baySlot = 1;
 
                 // clear the initial lance
@@ -121,7 +120,7 @@ namespace RandomCampaignStart
                     __instance.ActiveMechs.Remove(0);
                     baySlot = 0;
                 }
-                 
+
                 // memoize dictionary of tonnages since we may be looping a lot
                 var mechTonnages = new Dictionary<string, float>();
                 foreach (var kvp in __instance.DataManager.ChassisDefs)
@@ -148,25 +147,25 @@ namespace RandomCampaignStart
                             baySlot++;
                     }
                 }
-                else
+                else  // G new mode
                 {
-                    while (lance.Count < RngStart.Settings.MinimumLanceSize)
+                    while (baySlot <= RngStart.Settings.MinimumLanceSize)
                     {
-                        var mechDef = new MechDef(__instance.DataManager.MechDefs.Get(lance[x]), __instance.GenerateSimGameUID());
+                        var randomMech = mechTonnages.ElementAt(rng.Next(0, __instance.DataManager.ChassisDefs.Count));
+                        var mechDef = new MechDef(__instance.DataManager.MechDefs.Get(randomMech.Key), __instance.GenerateSimGameUID());
                         Logger.Debug($"mechDef: {mechDef}");
                         if (RngStart.Settings.MaximumStartingWeight < currentLanceWeight + mechDef.Chassis.Tonnage)
                         {
                             __instance.AddMech(baySlot, mechDef, true, true, false);
+
                             currentLanceWeight += mechDef.Chassis.Tonnage;
                             baySlot++;
                         }
-
-                        // check to see if we're on the last mechbay and if we have more mechs to add
-                        // if so, store the mech at index 5 before next iteration.
-                        if (baySlot == 5 && x + 1 < lance.Count)
-                            __instance.UnreadyMech(5, mechDef);
-                        else
-                            baySlot++;
+                        else if (__instance.GetAllInventoryMechDefs().Count < 4)
+                        {
+                            baySlot = 1;
+                            lance.Clear();
+                        }
                     }
                 }
             }
@@ -222,3 +221,4 @@ namespace RandomCampaignStart
             }
         }
     }
+}
