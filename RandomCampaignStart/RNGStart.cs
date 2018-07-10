@@ -54,75 +54,89 @@ namespace RandomCampaignStart
 
         public static void Postfix(SimGameState __instance)
         {
-            if (RngStart.Settings.NumberRandomRonin + RngStart.Settings.NumberProceduralPilots > 0)
+            int TotalTonnage = 0;
+            while (TotalTonnage < RngStart.Settings.MinimumTonnage || TotalTonnage > RngStart.Settings.MaximumTonnage)
             {
-                // clear roster
-                while (__instance.PilotRoster.Count > 0)
-                    __instance.PilotRoster.RemoveAt(0);
-
-                // pilotgenerator seems to give me the same exact results for ronin
-                // every time, and can push out duplicates, which is odd?
-                // just do our own thing
-                var pilots = new List<PilotDef>();
-
-                if (RngStart.Settings.StartingRonin != null)
+                TotalTonnage = 0;
+                if (RngStart.Settings.NumberRandomRonin + RngStart.Settings.NumberProceduralPilots > 0)
                 {
-                    foreach (var roninID in RngStart.Settings.StartingRonin)
+                    // clear roster
+                    while (__instance.PilotRoster.Count > 0)
+                        __instance.PilotRoster.RemoveAt(0);
+
+                    // pilotgenerator seems to give me the same exact results for ronin
+                    // every time, and can push out duplicates, which is odd?
+                    // just do our own thing
+                    var pilots = new List<PilotDef>();
+
+                    if (RngStart.Settings.StartingRonin != null)
                     {
-                        var pilotDef = __instance.DataManager.PilotDefs.Get(roninID);
+                        foreach (var roninID in RngStart.Settings.StartingRonin)
+                        {
+                            var pilotDef = __instance.DataManager.PilotDefs.Get(roninID);
 
-                        // add directly to roster, don't want to get duplicate ronin from random ronin
-                        if (pilotDef != null)
-                            __instance.AddPilotToRoster(pilotDef, true);
+                            // add directly to roster, don't want to get duplicate ronin from random ronin
+                            if (pilotDef != null)
+                                __instance.AddPilotToRoster(pilotDef, true);
+                        }
                     }
+
+                    pilots.AddRange(GetRandomSubList(__instance.RoninPilots, RngStart.Settings.NumberRandomRonin));
+
+                    // pilot generator works fine for non-ronin =/
+                    if (RngStart.Settings.NumberProceduralPilots > 0)
+                        pilots.AddRange(__instance.PilotGenerator.GeneratePilots(RngStart.Settings.NumberProceduralPilots, 1, 0, out _));
+
+                    // actually add the pilots to the SimGameState
+                    foreach (var pilotDef in pilots)
+                        __instance.AddPilotToRoster(pilotDef, true);
                 }
 
-                pilots.AddRange(GetRandomSubList(__instance.RoninPilots, RngStart.Settings.NumberRandomRonin));
-
-                // pilot generator works fine for non-ronin =/
-                if (RngStart.Settings.NumberProceduralPilots > 0)
-                    pilots.AddRange(__instance.PilotGenerator.GeneratePilots(RngStart.Settings.NumberProceduralPilots, 1, 0, out _));
-
-                // actually add the pilots to the SimGameState
-                foreach (var pilotDef in pilots)
-                    __instance.AddPilotToRoster(pilotDef, true);
-            }
-
-            // mechs
-            if (RngStart.Settings.NumberLightMechs + RngStart.Settings.NumberMediumMechs + RngStart.Settings.NumberHeavyMechs + RngStart.Settings.NumberAssaultMechs > 0)
-            {
-                var baySlot = 1;
-                var mechIds = new List<string>();
-
-                // clear the initial lance
-                for (var i = 1; i < __instance.Constants.Story.StartingLance.Length + 1; i++)
-                    __instance.ActiveMechs.Remove(i);
-
-                // remove ancestral mech if specified
-                if (RngStart.Settings.RemoveAncestralMech)
+                // mechs
+                if (RngStart.Settings.NumberLightMechs + RngStart.Settings.NumberMediumMechs + RngStart.Settings.NumberHeavyMechs + RngStart.Settings.NumberAssaultMechs > 0)
                 {
-                    __instance.ActiveMechs.Remove(0);
-                    baySlot = 0;
-                }
+                    var baySlot = 1;
+                    var mechIds = new List<string>();
 
-                // add the random mechs to mechIds
-                mechIds.AddRange(GetRandomSubList(RngStart.Settings.AssaultMechsPossible, RngStart.Settings.NumberAssaultMechs));
-                mechIds.AddRange(GetRandomSubList(RngStart.Settings.HeavyMechsPossible, RngStart.Settings.NumberHeavyMechs));
-                mechIds.AddRange(GetRandomSubList(RngStart.Settings.MediumMechsPossible, RngStart.Settings.NumberMediumMechs));
-                mechIds.AddRange(GetRandomSubList(RngStart.Settings.LightMechsPossible, RngStart.Settings.NumberLightMechs));
+                    // clear the initial lance
+                    for (var i = 1; i < __instance.Constants.Story.StartingLance.Length + 1; i++)
+                        __instance.ActiveMechs.Remove(i);
 
-                // actually add the mechs to the game
-                for (var i = 0; i < mechIds.Count; i++)
-                {
-                    var mechDef = new MechDef(__instance.DataManager.MechDefs.Get(mechIds[i]), __instance.GenerateSimGameUID());
-                    __instance.AddMech(baySlot, mechDef, true, true, false);
-
-                    // check to see if we're on the last mechbay and if we have more mechs to add
-                    // if so, store the mech at index 5 before next iteration.
-                    if (baySlot == 5 && i + 1 < mechIds.Count)
-                        __instance.UnreadyMech(5, mechDef);
+                    // remove ancestral mech if specified
+                    if (RngStart.Settings.RemoveAncestralMech)
+                    {
+                        __instance.ActiveMechs.Remove(0);
+                        baySlot = 0;
+                    }
                     else
-                        baySlot++;
+                    {
+                        TotalTonnage = 45;
+                    }
+
+                    // add the random mechs to mechIds
+                    mechIds.AddRange(GetRandomSubList(RngStart.Settings.AssaultMechsPossible, RngStart.Settings.NumberAssaultMechs));
+                    mechIds.AddRange(GetRandomSubList(RngStart.Settings.HeavyMechsPossible, RngStart.Settings.NumberHeavyMechs));
+                    mechIds.AddRange(GetRandomSubList(RngStart.Settings.MediumMechsPossible, RngStart.Settings.NumberMediumMechs));
+                    mechIds.AddRange(GetRandomSubList(RngStart.Settings.LightMechsPossible, RngStart.Settings.NumberLightMechs));
+
+                    // actually add the mechs to the game
+                    for (var i = 0; i < mechIds.Count; i++)
+                    {
+                        var mechDef = new MechDef(__instance.DataManager.MechDefs.Get(mechIds[i]), __instance.GenerateSimGameUID());
+                        __instance.AddMech(baySlot, mechDef, true, true, false);
+
+                        // check to see if we're on the last mechbay and if we have more mechs to add
+                        // if so, store the mech at index 5 before next iteration.
+                        if (baySlot == 5 && i + 1 < mechIds.Count)
+                        {
+                            __instance.UnreadyMech(5, mechDef);
+                        }
+                        else
+                        {
+                            baySlot++;
+                        }
+                        TotalTonnage = TotalTonnage + (int)mechDef.Chassis.Tonnage;
+                    }
                 }
             }
         }
@@ -139,6 +153,9 @@ namespace RandomCampaignStart
         public int NumberHeavyMechs = 0;
         public int NumberLightMechs = 3;
         public int NumberMediumMechs = 1;
+
+        public int MinimumTonnage = 150;
+        public int MaximumTonnage = 175;
 
         public List<string> StartingRonin = new List<string>();
 
