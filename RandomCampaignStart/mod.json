@@ -8,6 +8,7 @@
     "Website": "www.github.com/mpstark/RandomCampaignStart",
     
     "Settings": {
+		"Debug": true,
         "RemoveAncestralMech": false,
         "NumberRandomRonin": 4,
         "NumberProceduralPilots": 0,

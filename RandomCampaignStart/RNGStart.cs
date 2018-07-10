@@ -4,6 +4,8 @@ using System.Reflection;
 using BattleTech;
 using Harmony;
 using Newtonsoft.Json;
+using static RandomCampaignStart.ModSettings;
+using System.Linq;
 
 // ReSharper disable CollectionNeverUpdated.Global
 // ReSharper disable FieldCanBeMadeReadOnly.Global
@@ -54,6 +56,16 @@ namespace RandomCampaignStart
 
         public static void Postfix(SimGameState __instance)
         {
+
+            /*var simgame = __instance;
+            foreach (KeyValuePair<string, ChassisDef> dataManagerChassisDef in simgame.DataManager.ChassisDefs)
+            {
+
+                Logger.Debug($"storage key: {dataManagerChassisDef.Key}");
+                Logger.Debug($"chassis id: {dataManagerChassisDef.Value.Description.Id}");
+                Logger.Debug($"chassis variant: {dataManagerChassisDef.Value.VariantName}");
+            }*/
+
             if (RngStart.Settings.NumberRandomRonin + RngStart.Settings.NumberProceduralPilots > 0)
             {
                 // clear roster
@@ -86,13 +98,21 @@ namespace RandomCampaignStart
                 // actually add the pilots to the SimGameState
                 foreach (var pilotDef in pilots)
                     __instance.AddPilotToRoster(pilotDef, true);
+
+
+
             }
 
             // mechs
-            if (RngStart.Settings.NumberLightMechs + RngStart.Settings.NumberMediumMechs + RngStart.Settings.NumberHeavyMechs + RngStart.Settings.NumberAssaultMechs > 0)
+            if (RngStart.Settings.MinimumLanceSize > 0 ||
+                RngStart.Settings.NumberLightMechs + RngStart.Settings.NumberMediumMechs +
+                RngStart.Settings.NumberHeavyMechs + RngStart.Settings.NumberAssaultMechs > 0)
             {
+                var lance = new List<string>();
+                //lance.AddRange(__instance.DataManager.ChassisDefs.Keys);
+                float currentLanceWeight = 0;
+                int x = 0;
                 var baySlot = 1;
-                var mechIds = new List<string>();
 
                 // clear the initial lance
                 for (var i = 1; i < __instance.Constants.Story.StartingLance.Length + 1; i++)
@@ -105,21 +125,27 @@ namespace RandomCampaignStart
                     baySlot = 0;
                 }
 
-                // add the random mechs to mechIds
-                mechIds.AddRange(GetRandomSubList(RngStart.Settings.AssaultMechsPossible, RngStart.Settings.NumberAssaultMechs));
-                mechIds.AddRange(GetRandomSubList(RngStart.Settings.HeavyMechsPossible, RngStart.Settings.NumberHeavyMechs));
-                mechIds.AddRange(GetRandomSubList(RngStart.Settings.MediumMechsPossible, RngStart.Settings.NumberMediumMechs));
-                mechIds.AddRange(GetRandomSubList(RngStart.Settings.LightMechsPossible, RngStart.Settings.NumberLightMechs));
+                // memoize dictionary of tonnages since we may be looping a lot
+                var mechTonnages = new Dictionary<string, float>();
 
-                // actually add the mechs to the game
-                for (var i = 0; i < mechIds.Count; i++)
+                foreach (var kvp in __instance.DataManager.ChassisDefs)
                 {
-                    var mechDef = new MechDef(__instance.DataManager.MechDefs.Get(mechIds[i]), __instance.GenerateSimGameUID());
-                    __instance.AddMech(baySlot, mechDef, true, true, false);
+                    mechTonnages.Add(kvp.Key, kvp.Value.Tonnage);
+                }
+
+
+                while (lance.Count < RngStart.Settings.MinimumLanceSize)
+                {
+                    var mechDef = new MechDef(__instance.DataManager.MechDefs.Get(lance[x]), __instance.GenerateSimGameUID());
+                    if (RngStart.Settings.MaximumStartingWeight < currentLanceWeight + mechDef.Chassis.Tonnage)
+                    {
+                        __instance.AddMech(baySlot, mechDef, true, true, false);
+                        baySlot++;
+                    }
 
                     // check to see if we're on the last mechbay and if we have more mechs to add
                     // if so, store the mech at index 5 before next iteration.
-                    if (baySlot == 5 && i + 1 < mechIds.Count)
+                    if (baySlot == 5 && x + 1 < lance.Count)
                         __instance.UnreadyMech(5, mechDef);
                     else
                         baySlot++;
@@ -140,12 +166,19 @@ namespace RandomCampaignStart
         public int NumberLightMechs = 3;
         public int NumberMediumMechs = 1;
 
+        public float MinimumStartingWeight = 200;
+        public float MaximumStartingWeight = 300;
+        public int MinimumLanceSize = 4;
+
         public List<string> StartingRonin = new List<string>();
 
         public int NumberProceduralPilots = 0;
         public int NumberRandomRonin = 4;
 
         public bool RemoveAncestralMech = false;
+
+        public string ModDirectory = string.Empty;
+        public bool Debug = false;
     }
 
     public static class RngStart
@@ -161,6 +194,7 @@ namespace RandomCampaignStart
             try
             {
                 Settings = JsonConvert.DeserializeObject<ModSettings>(modSettings);
+                Settings.ModDirectory = modDir;
             }
             catch (Exception)
             {
