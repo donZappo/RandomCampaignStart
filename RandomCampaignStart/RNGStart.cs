@@ -154,32 +154,53 @@ namespace RandomCampaignStart
                     Logger.Debug($"New mode");
 
                     // cap the lance tonnage
-                    float maxWeight;
-                    if (RngStart.Settings.MaximumStartingWeight > 400)
-                        maxWeight = 400;
-                    else
-                        maxWeight = RngStart.Settings.MaximumStartingWeight;
+                    float maxWeight = Math.Min(400, RngStart.Settings.MaximumStartingWeight);
 
                     // loop until we have 4-6 mechs
-                    while (baySlot < RngStart.Settings.MinimumLanceSize && baySlot < 7)
+                    while (currentLanceWeight <= RngStart.Settings.MinimumStartingWeight &&
+                           __instance.ActiveMechs.Count >= RngStart.Settings.MinimumLanceSize &&
+                           __instance.ActiveMechs.Count < 7)
                     {
-                        Logger.Debug($"In while loop");
-                        var randomMech = mechTonnages.ElementAt(rng.Next(0, __instance.DataManager.ChassisDefs.Count));
-                        var mechDef = new MechDef(__instance.DataManager.MechDefs.Get(randomMech.Key), __instance.GenerateSimGameUID());
-                        Logger.Debug($"randomMech {randomMech} mechDef: {mechDef}");
-                        if (RngStart.Settings.MaximumStartingWeight < currentLanceWeight + mechDef.Chassis.Tonnage)
-                        {
-                            __instance.AddMech(baySlot, mechDef, true, true, false);
+                        //Logger.Debug($"In while loop");
+                        //foreach (var mech in __instance.DataManager.MechDefs)
+                        //{
+                        //    Logger.Debug($"K:{mech.Key} V:{mech.Value}");
+                        //}
+                        //foreach (var chasis in __instance.DataManager.ChassisDefs)
+                        //{
+                        //    Logger.Debug($"K:{chasis.Key}");
+                        //}
 
+                        // build lance collection from dictionary for speed
+                        // only when lance is valid do we instantiate it
+                        var randomMech = mechTonnages.ElementAt(rng.Next(0, __instance.DataManager.ChassisDefs.Count));
+                        var mechString = randomMech.Key.Replace("chassisdef", "mechdef");  // getting chassisdefs so renaming the key to match mechdefs Id
+
+                        var mechDef = new MechDef(__instance.DataManager.MechDefs.Get(mechString), __instance.GenerateSimGameUID());
+                        if (RngStart.Settings.MaximumStartingWeight >= currentLanceWeight + mechDef.Chassis.Tonnage)
+                        {
+                            Logger.Debug($"Adding mech {mechString} to baySlot {baySlot}");
+                            if (currentLanceWeight > RngStart.Settings.MinimumStartingWeight + mechDef.Chassis.Tonnage)
+                                Logger.Debug($"Minimum lance tonnage met:  done");
+                            __instance.AddMech(baySlot, mechDef, true, true, false);
                             currentLanceWeight += mechDef.Chassis.Tonnage;
+                            Logger.Debug($"current tonnage: {currentLanceWeight} tonnage remaining: {RngStart.Settings.MaximumStartingWeight - currentLanceWeight}");
                             baySlot++;
                         }
-                        else if (__instance.GetAllInventoryMechDefs().Count < 4)
+                        // invalid lance, reset
+                        else if (__instance.ActiveMechs.Count < 4  &&
+                                 RngStart.Settings.MinimumStartingWeight <= currentLanceWeight)
                         {
-                            baySlot = 1;
-                            lance.Clear();
+                            Logger.Debug($"Clearing invalid lance");
+                            baySlot = 0;
+                            currentLanceWeight = 0;
+
+                            for (var i = 1; i < __instance.ActiveMechs.Count; i++)
+                                __instance.ActiveMechs.Remove(i);
                         }
+                        //Logger.Debug($"Done a loop");
                     }
+                    // valid lance created
                 }
             }
         }
@@ -197,8 +218,8 @@ namespace RandomCampaignStart
             public int NumberLightMechs = 3;
             public int NumberMediumMechs = 1;
 
-            public float MinimumStartingWeight = 200;
-            public float MaximumStartingWeight = 300;
+            public float MinimumStartingWeight = 100f;
+            public float MaximumStartingWeight = 180f;
             public int MinimumLanceSize = 4;
 
             public List<string> StartingRonin = new List<string>();

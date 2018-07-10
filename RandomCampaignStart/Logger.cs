@@ -31,7 +31,7 @@ namespace RandomCampaignStart
             if (!RngStart.Settings.Debug) return;
             using (StreamWriter writer = new StreamWriter(filePath, true))
             {
-                writer.WriteLine($"{DateTime.Now.ToShortTimeString()} {line}");
+                writer.WriteLine($"{DateTime.Now.ToLongTimeString()} {line}");
             }
         }
     }
