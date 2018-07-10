@@ -122,15 +122,17 @@ namespace RandomCampaignStart
                 }
 
                 // memoize dictionary of tonnages since we may be looping a lot
+                Logger.Debug($"Memoizing");
                 var mechTonnages = new Dictionary<string, float>();
                 foreach (var kvp in __instance.DataManager.ChassisDefs)
                 {
                     mechTonnages.Add(kvp.Key, kvp.Value.Tonnage);
                 }
-
+                Logger.Debug($"Done memoizing");
                 if (RngStart.Settings.NumberAssaultMechs + RngStart.Settings.NumberHeavyMechs +
                     RngStart.Settings.NumberMediumMechs + RngStart.Settings.NumberLightMechs > 0)
                 {
+                    Logger.Debug($"Legacy mode");
                     legacyLance.AddRange(GetRandomSubList(RngStart.Settings.AssaultMechsPossible, RngStart.Settings.NumberAssaultMechs));
                     legacyLance.AddRange(GetRandomSubList(RngStart.Settings.HeavyMechsPossible, RngStart.Settings.NumberHeavyMechs));
                     legacyLance.AddRange(GetRandomSubList(RngStart.Settings.MediumMechsPossible, RngStart.Settings.NumberMediumMechs));
@@ -149,11 +151,22 @@ namespace RandomCampaignStart
                 }
                 else  // G new mode
                 {
-                    while (baySlot <= RngStart.Settings.MinimumLanceSize)
+                    Logger.Debug($"New mode");
+
+                    // cap the lance tonnage
+                    float maxWeight;
+                    if (RngStart.Settings.MaximumStartingWeight > 400)
+                        maxWeight = 400;
+                    else
+                        maxWeight = RngStart.Settings.MaximumStartingWeight;
+
+                    // loop until we have 4-6 mechs
+                    while (baySlot < RngStart.Settings.MinimumLanceSize && baySlot < 7)
                     {
+                        Logger.Debug($"In while loop");
                         var randomMech = mechTonnages.ElementAt(rng.Next(0, __instance.DataManager.ChassisDefs.Count));
                         var mechDef = new MechDef(__instance.DataManager.MechDefs.Get(randomMech.Key), __instance.GenerateSimGameUID());
-                        Logger.Debug($"mechDef: {mechDef}");
+                        Logger.Debug($"randomMech {randomMech} mechDef: {mechDef}");
                         if (RngStart.Settings.MaximumStartingWeight < currentLanceWeight + mechDef.Chassis.Tonnage)
                         {
                             __instance.AddMech(baySlot, mechDef, true, true, false);
