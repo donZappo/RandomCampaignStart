@@ -126,6 +126,15 @@ namespace RandomCampaignStart
                 var mechTonnages = new Dictionary<string, float>();
                 foreach (var kvp in __instance.DataManager.ChassisDefs)
                 {
+                    if (!RngStart.Settings.AllowCustomMechs)
+                    {
+                         if (kvp.Key.Contains("CUSTOM"))
+                            continue;
+                    }
+                    if (kvp.Key.Contains("DUMMY") && !kvp.Key.Contains("CUSTOM")) // just in case someone calls their mech DUMMY
+                        continue;
+
+                    // passed checks, add to Dictionary
                     mechTonnages.Add(kvp.Key, kvp.Value.Tonnage);
                 }
                 Logger.Debug($"Done memoizing");
@@ -157,8 +166,13 @@ namespace RandomCampaignStart
                     float maxWeight = Math.Min(400, RngStart.Settings.MaximumStartingWeight);
 
                     // loop until we have 4-6 mechs
+
+                    // if the lance weights 
+                    // if the number of mechs is between 4 and 6.  or settings
+                    while ()
+
                     while (currentLanceWeight <= RngStart.Settings.MinimumStartingWeight &&
-                           __instance.ActiveMechs.Count >= RngStart.Settings.MinimumLanceSize &&
+                           __instance.ActiveMechs.Count <= RngStart.Settings.MinimumLanceSize &&
                            __instance.ActiveMechs.Count < 7)
                     {
                         //Logger.Debug($"In while loop");
@@ -172,7 +186,8 @@ namespace RandomCampaignStart
                         //}
 
                         // build lance collection from dictionary for speed
-                        // only when lance is valid do we instantiate it
+                        // TODO only when lance is valid do we instantiate it
+
                         var randomMech = mechTonnages.ElementAt(rng.Next(0, __instance.DataManager.ChassisDefs.Count));
                         var mechString = randomMech.Key.Replace("chassisdef", "mechdef");  // getting chassisdefs so renaming the key to match mechdefs Id
 
@@ -194,7 +209,6 @@ namespace RandomCampaignStart
                             Logger.Debug($"Clearing invalid lance");
                             baySlot = 0;
                             currentLanceWeight = 0;
-
                             for (var i = 1; i < __instance.ActiveMechs.Count; i++)
                                 __instance.ActiveMechs.Remove(i);
                         }
@@ -204,7 +218,6 @@ namespace RandomCampaignStart
                 }
             }
         }
-
 
         internal class ModSettings
         {
@@ -218,9 +231,11 @@ namespace RandomCampaignStart
             public int NumberLightMechs = 3;
             public int NumberMediumMechs = 1;
 
-            public float MinimumStartingWeight = 100f;
-            public float MaximumStartingWeight = 180f;
+            public float MinimumStartingWeight = 100;
+            public float MaximumStartingWeight = 400;
+            public float MaximumMechWeight = 50;
             public int MinimumLanceSize = 4;
+            public bool AllowCustomMechs = false;
 
             public List<string> StartingRonin = new List<string>();
 
