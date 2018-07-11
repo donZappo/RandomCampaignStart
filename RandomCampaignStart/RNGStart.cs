@@ -128,11 +128,9 @@ namespace RandomCampaignStart
                 foreach (var kvp in __instance.DataManager.ChassisDefs)
                 {
                     if (!RngStart.Settings.AllowCustomMechs)
-                    {
                          if (kvp.Key.Contains("CUSTOM"))
                             continue;
-                    }
-                    if (kvp.Key.Contains("DUMMY") && !kvp.Key.Contains("CUSTOM")) // just in case someone calls their mech DUMMY
+                    if (kvp.Key.Contains("TARGETDUMMY") && !kvp.Key.Contains("CUSTOM")) // just in case someone calls their mech TARGETDUMMY
                         continue;
 
                     // passed checks, add to Dictionary
@@ -212,8 +210,8 @@ namespace RandomCampaignStart
                                  currentLanceWeight >= RngStart.Settings.MinimumStartingWeight)
                         {
                             Logger.Debug($"Clearing invalid lance");
-                            baySlot = 0;
                             currentLanceWeight = 0;
+                            lance.Clear();
                             for (var i = 1; i < __instance.ActiveMechs.Count; i++)
                                 __instance.ActiveMechs.Remove(i);
                         }
@@ -240,8 +238,8 @@ namespace RandomCampaignStart
             public int NumberLightMechs = 3;
             public int NumberMediumMechs = 1;
 
-            public float MinimumStartingWeight = 100;
-            public float MaximumStartingWeight = 200;
+            public float MinimumStartingWeight = 165;
+            public float MaximumStartingWeight = 175;
             public float MaximumMechWeight = 50;  // not implemented
             public int MinimumLanceSize = 4;
             public bool AllowCustomMechs = false;
