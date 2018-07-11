@@ -198,7 +198,7 @@ namespace RandomCampaignStart
                 baySlot = 0;
 
                 // cap the lance tonnage
-                float maxWeight = Math.Min(400, RngStart.Settings.MaximumStartingWeight);
+                float maxWeight = Math.Min(100 * RngStart.Settings.MaximumLanceSize, RngStart.Settings.MaximumStartingWeight);
                 float maxLanceSize = Math.Min(6, RngStart.Settings.MaximumLanceSize);
 
                 // loop until we have 4-6 mechs
@@ -206,7 +206,7 @@ namespace RandomCampaignStart
                 // if the lance weights 
                 // if the number of mechs is between 4 and 6.  or settings
 
-                while (currentLanceWeight < RngStart.Settings.MinimumStartingWeight || lance.Count < RngStart.Settings.MinimumLanceSize)
+                while (RngStart.Settings.MinimumLanceSize > lance.Count ||  currentLanceWeight < RngStart.Settings.MinimumStartingWeight)
                 {
                     #region Def listing loops
 
@@ -247,7 +247,7 @@ namespace RandomCampaignStart
                             $"before lower limit hit: {Math.Max(0, RngStart.Settings.MinimumStartingWeight - currentLanceWeight)}");
                     }
                     // invalid lance, reset
-                    else if (currentLanceWeight > RngStart.Settings.MaximumStartingWeight || lance.Count > maxLanceSize)
+                    if (currentLanceWeight > RngStart.Settings.MaximumStartingWeight || lance.Count > maxLanceSize)
                     {
                         Logger.Debug($"Clearing invalid lance");
                         currentLanceWeight = 0;
