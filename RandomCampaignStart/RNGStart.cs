@@ -171,8 +171,8 @@ namespace RandomCampaignStart
                     // if the number of mechs is between 4 and 6.  or settings
 
                     while (currentLanceWeight <= RngStart.Settings.MinimumStartingWeight &&
-                           __instance.ActiveMechs.Count < 7 &&
-                           RngStart.Settings.MinimumLanceSize >= __instance.ActiveMechs.Count)
+                           lance.Count < 7 &&
+                           lance.Count >= RngStart.Settings.MinimumLanceSize)
                     {
                         #region Def listing loops
 
