@@ -128,9 +128,10 @@ namespace RandomCampaignStart
                 foreach (var kvp in __instance.DataManager.ChassisDefs)
                 {
                     if (!RngStart.Settings.AllowCustomMechs)
-                         if (kvp.Key.Contains("CUSTOM"))
-                            continue;
-                    if (kvp.Key.Contains("TARGETDUMMY") && !kvp.Key.Contains("CUSTOM")) // just in case someone calls their mech TARGETDUMMY
+                        //Logger.Debug($"{kvp.Key}");
+                    if (kvp.Key.Contains("DUMMY") && !kvp.Key.Contains("CUSTOM")) // just in case someone calls their mech DUMMY
+                        continue;
+                    if (kvp.Key.Contains("CUSTOM") || kvp.Key.Contains("DUMMY"))
                         continue;
 
                     // passed checks, add to Dictionary
@@ -170,7 +171,8 @@ namespace RandomCampaignStart
                     // if the number of mechs is between 4 and 6.  or settings
 
                     while (currentLanceWeight <= RngStart.Settings.MinimumStartingWeight &&
-                           __instance.ActiveMechs.Count < 7)
+                           __instance.ActiveMechs.Count < 7 &&
+                           RngStart.Settings.MinimumLanceSize >= __instance.ActiveMechs.Count)
                     {
                         #region Def listing loops
 
@@ -193,38 +195,43 @@ namespace RandomCampaignStart
                         var mechString = randomMech.Key.Replace("chassisdef", "mechdef");  // getting chassisdefs so renaming the key to match mechdefs Id
                         var mechDef = new MechDef(__instance.DataManager.MechDefs.Get(mechString), __instance.GenerateSimGameUID());
 
+                        // does the mech fit into the lance?
                         if (RngStart.Settings.MaximumStartingWeight >= currentLanceWeight + mechDef.Chassis.Tonnage)
                         {
                             Logger.Debug($"Adding mech {mechString} {mechDef.Chassis.Tonnage} tons");
+                            lance.Add(mechDef); // worry about sorting later
+                            currentLanceWeight += mechDef.Chassis.Tonnage;
+
                             if (currentLanceWeight > RngStart.Settings.MinimumStartingWeight + mechDef.Chassis.Tonnage)
                                 Logger.Debug($"Minimum lance tonnage met:  done");
-                            lance.Add(mechDef); // worry about sorting later
-                            //__instance.AddMech(baySlot, mechDef, true, true, false);
-                            currentLanceWeight += mechDef.Chassis.Tonnage;
+
                             Logger.Debug($"current: {currentLanceWeight} tons. " +
                                 $"tonnage remaining: {RngStart.Settings.MaximumStartingWeight - currentLanceWeight}. " +
                                 $"before lower limit hit: {Math.Max(0, RngStart.Settings.MinimumStartingWeight - currentLanceWeight)}");
                         }
                         // invalid lance, reset
-                        else if (lance.Count < 4  &&
+                        else if (lance.Count < 4 &&
                                  currentLanceWeight >= RngStart.Settings.MinimumStartingWeight)
                         {
                             Logger.Debug($"Clearing invalid lance");
                             currentLanceWeight = 0;
                             lance.Clear();
-                            for (var i = 1; i < __instance.ActiveMechs.Count; i++)
-                                __instance.ActiveMechs.Remove(i);
+                            continue;
                         }
                         //Logger.Debug($"Done a loop");
                     }
+                    Logger.Debug($"Starting lance instantiation");
                     for (int x = 0; x < lance.Count; x++)
                     {
+                        Logger.Debug($"x is {x} and lance[x] is {lance[x].Name}");
                         __instance.AddMech(x, lance[x], true, true, false);
                     }
                     // valid lance created
                 }
             }
         }
+        // TODO apply back to legacy mode
+        //__instance.AddMech(baySlot, mechDef, true, true, false);
 
         internal class ModSettings
         {
