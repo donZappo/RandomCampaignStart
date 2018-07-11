@@ -164,15 +164,14 @@ namespace RandomCampaignStart
 
                     // cap the lance tonnage
                     float maxWeight = Math.Min(400, RngStart.Settings.MaximumStartingWeight);
+                    float maxLanceSize = Math.Min(6, RngStart.Settings.MaximumLanceSize);
 
                     // loop until we have 4-6 mechs
 
                     // if the lance weights 
                     // if the number of mechs is between 4 and 6.  or settings
 
-                    while (currentLanceWeight <= RngStart.Settings.MinimumStartingWeight &&
-                           lance.Count < 7 &&
-                           lance.Count >= RngStart.Settings.MinimumLanceSize)
+                    while (currentLanceWeight < RngStart.Settings.MinimumStartingWeight || lance.Count < RngStart.Settings.MinimumLanceSize)
                     {
                         #region Def listing loops
 
@@ -196,11 +195,12 @@ namespace RandomCampaignStart
                         var mechDef = new MechDef(__instance.DataManager.MechDefs.Get(mechString), __instance.GenerateSimGameUID());
 
                         // does the mech fit into the lance?
-                        if (RngStart.Settings.MaximumStartingWeight >= currentLanceWeight + mechDef.Chassis.Tonnage)
+
+                        currentLanceWeight = currentLanceWeight + mechDef.Chassis.Tonnage;
+                        if (RngStart.Settings.MaximumStartingWeight >= currentLanceWeight)
                         {
                             Logger.Debug($"Adding mech {mechString} {mechDef.Chassis.Tonnage} tons");
                             lance.Add(mechDef); // worry about sorting later
-                            currentLanceWeight += mechDef.Chassis.Tonnage;
 
                             if (currentLanceWeight > RngStart.Settings.MinimumStartingWeight + mechDef.Chassis.Tonnage)
                                 Logger.Debug($"Minimum lance tonnage met:  done");
@@ -210,8 +210,7 @@ namespace RandomCampaignStart
                                 $"before lower limit hit: {Math.Max(0, RngStart.Settings.MinimumStartingWeight - currentLanceWeight)}");
                         }
                         // invalid lance, reset
-                        else if (lance.Count < 4 &&
-                                 currentLanceWeight >= RngStart.Settings.MinimumStartingWeight)
+                        else if (currentLanceWeight > RngStart.Settings.MaximumStartingWeight || lance.Count > maxLanceSize)
                         {
                             Logger.Debug($"Clearing invalid lance");
                             currentLanceWeight = 0;
@@ -249,6 +248,7 @@ namespace RandomCampaignStart
             public float MaximumStartingWeight = 175;
             public float MaximumMechWeight = 50;  // not implemented
             public int MinimumLanceSize = 4;
+            public int MaximumLanceSize = 6;
             public bool AllowCustomMechs = false;
 
             public List<string> StartingRonin = new List<string>();
