@@ -102,7 +102,6 @@ namespace RandomCampaignStart
             Logger.Debug($"Starting lance creation {RngStart.Settings.MinimumStartingWeight} - {RngStart.Settings.MaximumStartingWeight} tons");
             // mechs
             var lance = new List<MechDef>();
-            var legacyLance = new List<string>();
             float currentLanceWeight = 0;
             //int x = 0;
             var baySlot = 1;
@@ -148,42 +147,40 @@ namespace RandomCampaignStart
                 currentLanceWeight = 0;
                 bool firstrun = true;
 
-                while(currentLanceWeight < RngStart.Settings.MinimumStartingWeight || currentLanceWeight > RngStart.Settings.MaximumStartingWeight)
-                Logger.Debug($"Legacy mode");
-                if (RngStart.Settings.RemoveAncestralMech)
+                while (currentLanceWeight < RngStart.Settings.MinimumStartingWeight || currentLanceWeight > RngStart.Settings.MaximumStartingWeight)
                 {
-                    currentLanceWeight = 0;
-                    baySlot = 0;
-                }
-                else
-                {
-                    currentLanceWeight = 45;
-                    baySlot = 1;
-                }
-                if(!firstrun)
-                {
-                    for (var i = baySlot; i < __instance.Constants.Story.StartingLance.Length + 1; i++)
-                        __instance.ActiveMechs.Remove(i);
-                }
+                    if (RngStart.Settings.RemoveAncestralMech)
+                    {
+                        currentLanceWeight = 0;
+                        baySlot = 0;
+                    }
+                    else
+                    {
+                        currentLanceWeight = 45;
+                        baySlot = 1;
+                    }
+                    if (!firstrun)
+                    {
+                        for (var i = baySlot; i < __instance.Constants.Story.StartingLance.Length + 1; i++)
+                        {
+                            __instance.ActiveMechs.Remove(i);
+                        }
+                    }
+                    var legacyLance = new List<string>();
+                    legacyLance.AddRange(GetRandomSubList(RngStart.Settings.AssaultMechsPossible, RngStart.Settings.NumberAssaultMechs));
+                    legacyLance.AddRange(GetRandomSubList(RngStart.Settings.HeavyMechsPossible, RngStart.Settings.NumberHeavyMechs));
+                    legacyLance.AddRange(GetRandomSubList(RngStart.Settings.MediumMechsPossible, RngStart.Settings.NumberMediumMechs));
+                    legacyLance.AddRange(GetRandomSubList(RngStart.Settings.LightMechsPossible, RngStart.Settings.NumberLightMechs));
 
-
-                legacyLance.AddRange(GetRandomSubList(RngStart.Settings.AssaultMechsPossible, RngStart.Settings.NumberAssaultMechs));
-                legacyLance.AddRange(GetRandomSubList(RngStart.Settings.HeavyMechsPossible, RngStart.Settings.NumberHeavyMechs));
-                legacyLance.AddRange(GetRandomSubList(RngStart.Settings.MediumMechsPossible, RngStart.Settings.NumberMediumMechs));
-                legacyLance.AddRange(GetRandomSubList(RngStart.Settings.LightMechsPossible, RngStart.Settings.NumberLightMechs));
-                for (var i = baySlot; i < legacyLance.Count; i++)
-                {
-                    var mechDef = new MechDef(__instance.DataManager.MechDefs.Get(legacyLance[i]), __instance.GenerateSimGameUID());
-                    __instance.AddMech(baySlot, mechDef, true, true, false);
                     // check to see if we're on the last mechbay and if we have more mechs to add
                     // if so, store the mech at index 5 before next iteration.
                     for (int j = 0; j < legacyLance.Count; j++)
                     {
                         MechDef mechDef2 = new MechDef(__instance.DataManager.MechDefs.Get(legacyLance[j]), __instance.GenerateSimGameUID(), true);
-                        __instance.AddMech(baySlot, mechDef, true, true, false, null);
+                        __instance.AddMech(baySlot, mechDef2, true, true, false, null);
                         if (baySlot == 5 && j + 1 < legacyLance.Count)
                         {
-                            __instance.UnreadyMech(5, mechDef);
+                            __instance.UnreadyMech(5, mechDef2);
                         }
                         else
                         {
@@ -198,6 +195,7 @@ namespace RandomCampaignStart
             {
                 Logger.Debug($"New mode");
                 __instance.ActiveMechs.Remove(0);
+                baySlot = 0;
 
                 // cap the lance tonnage
                 float maxWeight = Math.Min(400, RngStart.Settings.MaximumStartingWeight);
@@ -225,10 +223,12 @@ namespace RandomCampaignStart
 
                     // build lance collection from dictionary for speed
                     // TODO only when lance is valid do we instantiate it
-                    var randomMech = __instance.DataManager.ChassisDefs.ElementAt(rng.Next(0, __instance.DataManager.ChassisDefs.Count));
+                    var randomMech = mechTonnages.ElementAt(rng.Next(0, mechTonnages.Count));
+                    //var randomMech = __instance.DataManager.ChassisDefs.ElementAt(rng.Next(0, __instance.DataManager.ChassisDefs.Count));
 
                     //var randomMech = mechTonnages.ElementAt(rng.Next(0, __instance.DataManager.ChassisDefs.Count));
                     var mechString = randomMech.Key.Replace("chassisdef", "mechdef");  // getting chassisdefs so renaming the key to match mechdefs Id
+                    //var mechDef = new MechDef(__instance.DataManager.MechDefs.Get(mechString), __instance.GenerateSimGameUID());
                     var mechDef = new MechDef(__instance.DataManager.MechDefs.Get(mechString), __instance.GenerateSimGameUID());
 
                     // does the mech fit into the lance?
