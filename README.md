@@ -20,18 +20,18 @@ Method Randomization.
     		"StartingRonin": [],
 		
 		/* Settings for Full Random Mode. Maximum Lance Size is 6.*/
-    		"MinimumLanceSize" : 5,
+    	"MinimumLanceSize" : 5,
 		"MaximumLanceSize" : 6,
 		"MaximumMechWeight" : 45,
 		
 Settings for Original Method. Use this method to input specific mechs to be randomized amongst. Also, this allows
-		precise control of mech weight classes.	
+precise control of mech weight classes.	
 		"RemoveAncestralMech" : false,		
 		
 		"NumberAssaultMechs" : 0,
 		"NumberHeavyMechs" : 0,
 		"NumberLightMechs" : 3,
-    		"NumberMediumMechs" : 1,
+    	"NumberMediumMechs" : 1,
 		"LightMechsPossible": [],
 		"MediumMechsPossible": [],
 		"HeavyMechsPossible": [],
