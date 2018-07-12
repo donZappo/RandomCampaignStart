@@ -12,14 +12,20 @@ can input a list of mechs and specify amongst weight classes.
 Global toggles that effect both types of randomizers. FullRandomMode: true for complete randomization, false for Original 
 Method Randomization.
 		"FullRandomMode" : true,
-		"MinimumStartingWeight" : 160,
-    		"MaximumStartingWeight" : 170,
-		"NumberRandomRonin": 0,
-    		"NumberProceduralPilots": 0,
-
-    		"StartingRonin": [],
 		
-		/* Settings for Full Random Mode. Maximum Lance Size is 6.*/
+		"MinimumStartingWeight" : 160,
+		
+    	"MaximumStartingWeight" : 170,
+		
+		"NumberRandomRonin": 0,
+		
+    	"NumberProceduralPilots": 0,
+	
+   	 "StartingRonin": [],
+		
+		
+
+Settings for Full Random Mode. Maximum Lance Size is 6.
     	"MinimumLanceSize" : 5,
 		"MaximumLanceSize" : 6,
 		"MaximumMechWeight" : 45,
