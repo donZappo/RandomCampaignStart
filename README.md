@@ -11,6 +11,7 @@ can input a list of mechs and specify amongst weight classes.
 
 Global toggles that effect both types of randomizers. FullRandomMode: true for complete randomization, false for Original 
 Method Randomization.
+
 		"FullRandomMode" : true,
 		
 		"MinimumStartingWeight" : 160,
