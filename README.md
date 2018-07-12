@@ -22,13 +22,16 @@ Method Randomization.
 		
     	"NumberProceduralPilots": 0,
 	
-   		 "StartingRonin": [],
+   		"StartingRonin": [],
 		
 		
 
 Settings for Full Random Mode. Maximum Lance Size is 6.
+
     	"MinimumLanceSize" : 5,
+	
 		"MaximumLanceSize" : 6,
+		
 		"MaximumMechWeight" : 45,
 		
 Settings for Original Method. Use this method to input specific mechs to be randomized amongst. Also, this allows
