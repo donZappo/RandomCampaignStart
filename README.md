@@ -36,6 +36,7 @@ Settings for Full Random Mode. Maximum Lance Size is 6.
 		
 Settings for Original Method. Use this method to input specific mechs to be randomized amongst. Also, this allows
 precise control of mech weight classes.	
+
 		"RemoveAncestralMech" : false,		
 		
 		"NumberAssaultMechs" : 0,
