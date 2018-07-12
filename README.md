@@ -21,7 +21,7 @@ Method Randomization.
 		
     	"NumberProceduralPilots": 0,
 	
-   	 "StartingRonin": [],
+   		 "StartingRonin": [],
 		
 		
 
