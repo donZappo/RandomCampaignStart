@@ -9,9 +9,8 @@ can input a list of mechs and specify amongst weight classes.
 
 ***SETTINGS***
 
-
-     /* Global toggles that effect both types of randomizers. FullRandomMode: true for complete randomization, false for Original Method
-     Randomization.*/
+Global toggles that effect both types of randomizers. FullRandomMode: true for complete randomization, false for Original 
+Method Randomization.
 		"FullRandomMode" : true,
 		"MinimumStartingWeight" : 160,
     		"MaximumStartingWeight" : 170,
@@ -25,8 +24,8 @@ can input a list of mechs and specify amongst weight classes.
 		"MaximumLanceSize" : 6,
 		"MaximumMechWeight" : 45,
 		
-		/* Settings for Original Method. Use this method to input specific mechs to be randomized amongst. Also, this allows
-		precise control of mech weight classes. */	
+Settings for Original Method. Use this method to input specific mechs to be randomized amongst. Also, this allows
+		precise control of mech weight classes.	
 		"RemoveAncestralMech" : false,		
 		
 		"NumberAssaultMechs" : 0,
