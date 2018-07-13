@@ -56,47 +56,32 @@ namespace RandomCampaignStart
         public static void Postfix(SimGameState __instance)
         {
 
-            /*var simgame = __instance;
-            foreach (KeyValuePair<string, ChassisDef> dataManagerChassisDef in simgame.DataManager.ChassisDefs)
-            {
-
-                Logger.Debug($"storage key: {dataManagerChassisDef.Key}");
-                Logger.Debug($"chassis id: {dataManagerChassisDef.Value.Description.Id}");
-                Logger.Debug($"chassis variant: {dataManagerChassisDef.Value.VariantName}");
-            }*/
-
             if (RngStart.Settings.NumberRandomRonin + RngStart.Settings.NumberProceduralPilots > 0)
             {
-                // clear roster
                 while (__instance.PilotRoster.Count > 0)
-                    __instance.PilotRoster.RemoveAt(0);
-
-                // pilotgenerator seems to give me the same exact results for ronin
-                // every time, and can push out duplicates, which is odd?
-                // just do our own thing
-                var pilots = new List<PilotDef>();
-
-                if (RngStart.Settings.StartingRonin != null)
                 {
-                    foreach (var roninID in RngStart.Settings.StartingRonin)
+                    __instance.PilotRoster.RemoveAt(0);
+                }
+                List<PilotDef> list = new List<PilotDef>();
+                if (RngStart.Settings.NumberRandomRonin > 0)
+                {
+                    List<PilotDef> list2 = new List<PilotDef>(__instance.RoninPilots);
+                    list2.RNGShuffle<PilotDef>();
+                    for (int i = 0; i < RngStart.Settings.NumberRandomRonin; i++)
                     {
-                        var pilotDef = __instance.DataManager.PilotDefs.Get(roninID);
-
-                        // add directly to roster, don't want to get duplicate ronin from random ronin
-                        if (pilotDef != null)
-                            __instance.AddPilotToRoster(pilotDef, true);
+                        list.Add(list2[i]);
                     }
                 }
-
-                pilots.AddRange(GetRandomSubList(__instance.RoninPilots, RngStart.Settings.NumberRandomRonin));
-
-                // pilot generator works fine for non-ronin =/
                 if (RngStart.Settings.NumberProceduralPilots > 0)
-                    pilots.AddRange(__instance.PilotGenerator.GeneratePilots(RngStart.Settings.NumberProceduralPilots, 1, 0, out _));
-
-                // actually add the pilots to the SimGameState
-                pilots.Select(x => __instance.AddPilotToRoster(x, true));
-
+                {
+                    List<PilotDef> list3;
+                    List<PilotDef> collection = __instance.PilotGenerator.GeneratePilots(RngStart.Settings.NumberProceduralPilots, 1, 0f, out list3);
+                    list.AddRange(collection);
+                }
+                foreach (PilotDef def in list)
+                {
+                    __instance.AddPilotToRoster(def, true);
+                }
             }
 
             Logger.Debug($"Starting lance creation {RngStart.Settings.MinimumStartingWeight} - {RngStart.Settings.MaximumStartingWeight} tons");
