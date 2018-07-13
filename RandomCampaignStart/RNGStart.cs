@@ -261,7 +261,7 @@ namespace RandomCampaignStart
                         }
 
                         Logger.Debug($"Adding {mechString}: {mechDef.Chassis.Tonnage} tons (now {currentLanceWeight}). " +
-                                     $"{maxWeight - currentLanceWeight} tons remaining," +
+                                     $"{maxWeight - currentLanceWeight} tons remaining, " +
                                      $"{Math.Max(0, minWeight - currentLanceWeight)} before lower limit hit.");
 
                         // invalid lance, reset
