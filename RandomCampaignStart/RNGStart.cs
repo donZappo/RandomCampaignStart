@@ -63,6 +63,19 @@ namespace RandomCampaignStart
                     __instance.PilotRoster.RemoveAt(0);
                 }
                 List<PilotDef> list = new List<PilotDef>();
+
+                if (RngStart.Settings.StartingRonin != null)
+                {
+                    foreach (var roninID in RngStart.Settings.StartingRonin)
+                    {
+                        var pilotDef = __instance.DataManager.PilotDefs.Get(roninID);
+
+                        // add directly to roster, don't want to get duplicate ronin from random ronin
+                        if (pilotDef != null)
+                            __instance.AddPilotToRoster(pilotDef, true);
+                    }
+                }
+
                 if (RngStart.Settings.NumberRandomRonin > 0)
                 {
                     List<PilotDef> list2 = new List<PilotDef>(__instance.RoninPilots);
@@ -209,12 +222,35 @@ namespace RandomCampaignStart
                     // build lance collection from dictionary for speed
                     // TODO only when lance is valid do we instantiate it
                     var randomMech = mechTonnages.ElementAt(rng.Next(0, mechTonnages.Count));
-                    //var randomMech = __instance.DataManager.ChassisDefs.ElementAt(rng.Next(0, __instance.DataManager.ChassisDefs.Count));
-
-                    //var randomMech = mechTonnages.ElementAt(rng.Next(0, __instance.DataManager.ChassisDefs.Count));
-                    var mechString = randomMech.Key.Replace("chassisdef", "mechdef");  // getting chassisdefs so renaming the key to match mechdefs Id
+                    var mechString = randomMech.Key.Replace("chassisdef", "mechdef");  
+                    // getting chassisdefs so renaming the key to match mechdefs Id
                     //var mechDef = new MechDef(__instance.DataManager.MechDefs.Get(mechString), __instance.GenerateSimGameUID());
                     var mechDef = new MechDef(__instance.DataManager.MechDefs.Get(mechString), __instance.GenerateSimGameUID());
+
+                    
+                    if(mechDef.MechTags.Contains("BLACKLISTED"))
+                    {
+                        Logger.Debug($"Blacklisted! {mechDef.Name}");
+                        currentLanceWeight = RngStart.Settings.MaximumStartingWeight + 5;
+                    }
+
+
+                    if (!RngStart.Settings.AllowDuplicateChassis)
+                    {
+                        bool dupe = false;
+                        foreach (var mech in lance)
+                        {
+                            if (mech.Name == mechDef.Name)
+                            {
+                                Logger.Debug($"SAME SAME! {mech.Name}\t\t{mechDef.Name}");
+                                currentLanceWeight = 0;
+                                dupe = true;
+                            }
+                        }
+                        if (dupe == true)
+                            lance.Clear();
+                    }
+
 
                     // does the mech fit into the lance?
 
@@ -239,6 +275,9 @@ namespace RandomCampaignStart
                         lance.Clear();
                         continue;
                     }
+                    
+
+
                     //Logger.Debug($"Done a loop");
                 }
                 Logger.Debug($"Starting lance instantiation");
@@ -267,11 +306,12 @@ namespace RandomCampaignStart
 
             public float MinimumStartingWeight = 165;
             public float MaximumStartingWeight = 175;
-            public float MaximumMechWeight = 50;  // not implemented
+            public float MaximumMechWeight = 50;
             public int MinimumLanceSize = 4;
             public int MaximumLanceSize = 6;
             public bool AllowCustomMechs = false;
             public bool FullRandomMode = true;
+            public bool AllowDuplicateChassis = false;
 
             public List<string> StartingRonin = new List<string>();
 
