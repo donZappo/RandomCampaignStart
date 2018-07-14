@@ -9,8 +9,8 @@ Now start with random Mechs or Mercenaries at the start of the campaign! This al
 
 ***SETTINGS***
 
-**Global toggles that effect both types of randomizers. FullRandomMode: true for complete randomization, false for Original 
-Method Randomization.**
+[Global toggles that effect both types of randomizers. FullRandomMode: true for complete randomization, false for Original 
+Method Randomization.]
 
 FullRandomMode: true				(true for Full Random Mode, false for Traditional Randome Mode)
 MinimumStartingWeight: 160			(Specify weight range for lance)
@@ -19,19 +19,19 @@ NumberRandomRonin: 0				(How many random Ronin from the global pool in starting 
 NumberProceduralPilots: 0			(How many random rookie pilots in starting pool)
 
 
-**Specify which Ronin you want to have in your game to start. NumberRoninFromList will specify how many Ronin will be randomly selected from amongst this list.**
+[Specify which Ronin you want to have in your game to start. NumberRoninFromList will specify how many Ronin will be randomly selected from amongst this list.]
 
 NumberRoninFromList: 4				(How many ronin will be randomly selected from the following list)
 StartingRonin:					(List of Ronin. Default is vanilla pilots)
-[
+
 	"pilot_sim_starter_medusa",
 	"pilot_sim_starter_behemoth",
 	"pilot_sim_starter_dekker",
 	"pilot_sim_starter_glitch"
-],
 
 
-**Settings for Full Random Mode. Maximum Lance Size = 6.**
+
+[Settings for Full Random Mode. Maximum Lance Size = 6.]
 
 MinimimumLanceSize: 5				(Specify minimum and maximum lance size to start)
 MaximumLanceSize: 6
@@ -40,7 +40,7 @@ AllowDuplicateChassis: false			(Can you get more than one of the same chassis ty
 AllowCustomMechs: false				(In case you add custom mechs you can disable them to start)
 
 
-**Settings for Original Method. Use this method to input specific mechs to be randomized amongst. Also, this allows precise control of mech weight classes. **
+[Settings for Original Method. Use this method to input specific mechs to be randomized amongst. Also, this allows precise control of mech weight classes.]
 
 RemoveAncestralMech: false			(false - start with Ancestral BJ-1)
 NumberAssaultMechs: 0				(How many of each weight class to start with)
@@ -48,7 +48,7 @@ NumberHeavyMechs: 0
 NumberMediumMechs: 3
 NumberLightMechs: 1
 						(Only mechs in these lists will be used for lance creation)
-"LightMechsPossible": [
+"LightMechsPossible":
       "mechdef_locust_LCT-1M",
       "mechdef_locust_LCT-1S",
       "mechdef_locust_LCT-1V",
@@ -76,8 +76,8 @@ NumberLightMechs: 1
       "mechdef_panther_PNT-9R",
       "mechdef_panther_PNT-8Z",
       "mechdef_panther_PNT-9ALAG"
-    ],
-    "MediumMechsPossible": [
+      
+    "MediumMechsPossible":
       "mechdef_blackjack_BJ-1",
       "mechdef_blackjack_BJ-1DB",
       "mechdef_blackjack_BJ-1DC",
@@ -88,8 +88,8 @@ NumberLightMechs: 1
       "mechdef_vindicator_VND-1R",
       "mechdef_vindicator_VND-1AA",
       "mechdef_vindicator_VND-1X"
-    ],
-    "HeavyMechsPossible": [
+    
+    "HeavyMechsPossible":
       "mechdef_blackknight_BL-6-KNT",
       "mechdef_cataphract_CTF-1X",
       "mechdef_catapult_CPLT-C1",
@@ -105,8 +105,8 @@ NumberLightMechs: 1
       "mechdef_thunderbolt_TDR-5S",
       "mechdef_thunderbolt_TDR-5SE",
       "mechdef_thunderbolt_TDR-5SS"
-    ],
-    "AssaultMechsPossible": [
+    
+    "AssaultMechsPossible":
       "mechdef_atlas_AS7-D",
       "mechdef_awesome_AWS-8Q",
       "mechdef_awesome_AWS-8T",
@@ -120,27 +120,5 @@ NumberLightMechs: 1
       "mechdef_victor_VTR-9B",
       "mechdef_victor_VTR-9S",
       "mechdef_zeus_ZEU-6S"
-    ],
-		
-
-Settings for Full Random Mode. Maximum Lance Size is 6.
-
-    	"MinimumLanceSize" : 5,
+    
 	
-		"MaximumLanceSize" : 6,
-		
-		"MaximumMechWeight" : 45,
-		
-Settings for Original Method. Use this method to input specific mechs to be randomized amongst. Also, this allows
-precise control of mech weight classes.	
-
-		"RemoveAncestralMech" : false,		
-		
-		"NumberAssaultMechs" : 0,
-		"NumberHeavyMechs" : 0,
-		"NumberLightMechs" : 3,
-    	"NumberMediumMechs" : 1,
-		"LightMechsPossible": [],
-		"MediumMechsPossible": [],
-		"HeavyMechsPossible": [],
-		"AssaultMechsPossible": []
