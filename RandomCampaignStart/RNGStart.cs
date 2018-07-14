@@ -95,7 +95,7 @@ namespace RandomCampaignStart
             for (var i = 1; i < __instance.Constants.Story.StartingLance.Length + 1; i++)
                 __instance.ActiveMechs.Remove(i);
 
-            
+
             // memoize dictionary of tonnages since we may be looping a lot
             //Logger.Debug($"Memoizing");
             var mechTonnages = new Dictionary<string, float>();
@@ -191,7 +191,7 @@ namespace RandomCampaignStart
                 // if the lance weights 
                 // if the number of mechs is between 4 and 6.  or settings
 
-                while (RngStart.Settings.MinimumLanceSize > lance.Count ||  currentLanceWeight < RngStart.Settings.MinimumStartingWeight)
+                while (RngStart.Settings.MinimumLanceSize > lance.Count || currentLanceWeight < RngStart.Settings.MinimumStartingWeight)
                 {
                     #region Def listing loops
 

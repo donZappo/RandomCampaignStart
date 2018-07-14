@@ -10,8 +10,8 @@
   "ConflictsWith": [ "RandomCampaignStart" ],
 
   "Settings": {
-    /* Global toggles that effect both types of randomizers. FullRandomMode: true for complete randomization, false for Original Method Randomization.*/
-    "FullRandomMode": true,
+    /* Global toggles that effect both types of randomizers. FullRandomMode: true for complete randomization, false for Original Method Randomization.*/	
+	  "FullRandomMode": true,
     "MinimumStartingWeight": 500,
     "MaximumStartingWeight": 600,
     "NumberRandomRonin": 0,
@@ -23,9 +23,15 @@
     "MinimumLanceSize": 4,
     "MaximumLanceSize": 6,
     "MaximumMechWeight": 100,
+	  "AllowDuplicateChassis":  false,
+	  "AllowCustomMechs": false,
 
     /* Settings for Original Method. Use this method to input specific mechs to be randomized amongst. Also, this allows precise control of mech weight classes. */
     "RemoveAncestralMech": false,
+
+	/* Dev toggles */
+	  "Debug":  false,
+	  "Loops":  1,
 
     "NumberAssaultMechs": 0,
     "NumberHeavyMechs": 0,
