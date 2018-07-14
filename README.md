@@ -30,11 +30,12 @@ StartingRonin: | List of Ronin. Default is vanilla pilots
 	"pilot_sim_starter_medusa",
 	"pilot_sim_starter_behemoth",
 	"pilot_sim_starter_dekker",
-	"pilot_sim_starter_glitch"```
+	"pilot_sim_starter_glitch"
+```
 
 
 
-[Settings for Full Random Mode. Maximum Lance Size = 6.]
+*Settings for Full Random Mode. Maximum Lance Size = 6.*
 
 Setting | Description
 --------|------------
@@ -44,7 +45,7 @@ AllowDuplicateChassis: false | Can you get more than one of the same chassis typ
 AllowCustomMechs: false | In case you add custom mechs you can disable them to start
 
 
-[Settings for Original Method. Use this method to input specific mechs to be randomized amongst. Also, this allows precise control of mech weight classes.]
+*Settings for Original Method. Use this method to input specific mechs to be randomized amongst. Also, this allows precise control of mech weight classes.*
 
 Setting | Description
 --------|------------
