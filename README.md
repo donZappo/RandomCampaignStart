@@ -48,6 +48,7 @@ NumberHeavyMechs: 0
 NumberMediumMechs: 3
 NumberLightMechs: 1
 						(Only mechs in these lists will be used for lance creation)
+
 "LightMechsPossible":
       "mechdef_locust_LCT-1M",
       "mechdef_locust_LCT-1S",
