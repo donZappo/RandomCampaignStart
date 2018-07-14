@@ -1,16 +1,16 @@
 # FullRandomCampaignStart
 Gives random mechs and mechwarriors at game start.
 
-***SUMMARY***
+**SUMMARY**
 
 
 
 Now start with random Mechs or Mercenaries at the start of the campaign! This allows for either fully random mechs where you can define the lance size, tonnage range, and a maximum tonnage per mech allowance. Also includes a tonnage range for the "traditional" mech randomizer where youcan input a list of mechs and specify amongst weight classes. 
 
-***SETTINGS***
+**SETTINGS**
 
-[Global toggles that effect both types of randomizers. FullRandomMode: true for complete randomization, false for Original 
-Method Randomization.]
+*Global toggles that effect both types of randomizers. FullRandomMode: true for complete randomization, false for Original 
+Method Randomization.*
 
 Setting | Description
 --------|------------
@@ -21,7 +21,7 @@ NumberRandomRonin: 0 | How many random Ronin from the global pool in starting po
 NumberProceduralPilots: 0 | How many random rookie pilots in starting pool
 
 
-[Specify which Ronin you want to have in your game to start. NumberRoninFromList will specify how many Ronin will be randomly selected from amongst this list.]
+*Specify which Ronin you want to have in your game to start. NumberRoninFromList will specify how many Ronin will be randomly selected from amongst this list.*
 
 Setting | Description
 --------|------------
