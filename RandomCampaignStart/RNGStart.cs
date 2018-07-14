@@ -56,7 +56,7 @@ namespace RandomCampaignStart
         public static void Postfix(SimGameState __instance)
         {
 
-            if (RngStart.Settings.NumberRandomRonin + RngStart.Settings.NumberProceduralPilots > 0)
+            if (RngStart.Settings.NumberRandomRonin + RngStart.Settings.NumberProceduralPilots + RngStart.Settings.NumberRoninFromList > 0)
             {
                 while (__instance.PilotRoster.Count > 0)
                 {
@@ -66,7 +66,9 @@ namespace RandomCampaignStart
 
                 if (RngStart.Settings.StartingRonin != null)
                 {
-                    foreach (var roninID in RngStart.Settings.StartingRonin)
+                    var RoninRandomizer = new List<string>();
+                    RoninRandomizer.AddRange(GetRandomSubList(RngStart.Settings.StartingRonin, RngStart.Settings.NumberRoninFromList));
+                    foreach (var roninID in RoninRandomizer)
                     {
                         var pilotDef = __instance.DataManager.PilotDefs.Get(roninID);
 
@@ -234,6 +236,15 @@ namespace RandomCampaignStart
                         currentLanceWeight = RngStart.Settings.MaximumStartingWeight + 5;
                     }
 
+                    foreach (var mechID in RngStart.Settings.ExcludedMechs)
+                    {
+                        if(mechID == mechDef.Description.Id)
+                        {
+                            Logger.Debug($"Excluded! {mechDef.Name}");
+                            currentLanceWeight = RngStart.Settings.MaximumStartingWeight + 5;
+                        }
+                    }
+
 
                     if (!RngStart.Settings.AllowDuplicateChassis)
                     {
@@ -314,6 +325,8 @@ namespace RandomCampaignStart
             public bool AllowDuplicateChassis = false;
 
             public List<string> StartingRonin = new List<string>();
+            public int NumberRoninFromList = 4;
+            public List<string> ExcludedMechs = new List<string>();
 
             public int NumberProceduralPilots = 0;
             public int NumberRandomRonin = 4;
