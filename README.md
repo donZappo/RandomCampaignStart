@@ -37,21 +37,25 @@ StartingRonin: | List of Ronin. Default is vanilla pilots
 
 [Settings for Full Random Mode. Maximum Lance Size = 6.]
 
->MinimimumLanceSize: 5				(Specify minimum and maximum lance size to start)
->MaximumLanceSize: 6
->MaximumMechWeight: 45				(Heaviest mech that you can start with)
->AllowDuplicateChassis: false			(Can you get more than one of the same chassis type?)
->AllowCustomMechs: false			(In case you add custom mechs you can disable them to start)
+Setting | Description
+--------|------------
+MinimimumLanceSize: 5 | Specify minimum and maximum lance size to start
+MaximumLanceSize: 6 | MaximumMechWeight: 45				Heaviest mech that you can start with
+AllowDuplicateChassis: false | Can you get more than one of the same chassis type?
+AllowCustomMechs: false | In case you add custom mechs you can disable them to start
 
 
 [Settings for Original Method. Use this method to input specific mechs to be randomized amongst. Also, this allows precise control of mech weight classes.]
 
-RemoveAncestralMech: false			(false - start with Ancestral BJ-1)
-NumberAssaultMechs: 0				(How many of each weight class to start with)
-NumberHeavyMechs: 0
-NumberMediumMechs: 3
-NumberLightMechs: 1
-						(Only mechs in these lists will be used for lance creation)
+Setting | Description
+--------|------------
+RemoveAncestralMech: false | false - start with Ancestral BJ-1
+NumberAssaultMechs: 0 | How many of each weight class to start with
+NumberHeavyMechs: 0 | 
+NumberMediumMechs: 3 | 
+NumberLightMechs: 1 | 
+
+```Only mechs in these lists will be used for lance creation
 
 "LightMechsPossible":
       "mechdef_locust_LCT-1M",
@@ -124,6 +128,5 @@ NumberLightMechs: 1
       "mechdef_stalker_STK-3F",
       "mechdef_victor_VTR-9B",
       "mechdef_victor_VTR-9S",
-      "mechdef_zeus_ZEU-6S"
-    
+      "mechdef_zeus_ZEU-6S"```
 	
