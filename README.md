@@ -12,11 +12,14 @@ Now start with random Mechs or Mercenaries at the start of the campaign! This al
 [Global toggles that effect both types of randomizers. FullRandomMode: true for complete randomization, false for Original 
 Method Randomization.]
 
-* FullRandomMode: true				(true for Full Random Mode, false for Traditional Randome Mode)
-* MinimumStartingWeight: 160			(Specify weight range for lance)
-* MaximumStartingWeight: 170
-* NumberRandomRonin: 0				(How many random Ronin from the global pool in starting pool)
-* NumberProceduralPilots: 0			(How many random rookie pilots in starting pool)
+Setting | Description
+--------|------------
+
+* FullRandomMode: true		|		(true for Full Random Mode, false for Traditional Randome Mode)
+* MinimumStartingWeight: 160		|	(Specify weight range for lance)
+* MaximumStartingWeight: 170|
+* NumberRandomRonin: 0			|	(How many random Ronin from the global pool in starting pool)
+* NumberProceduralPilots: 0		|	(How many random rookie pilots in starting pool)
 
 
 [Specify which Ronin you want to have in your game to start. NumberRoninFromList will specify how many Ronin will be randomly selected from amongst this list.]
