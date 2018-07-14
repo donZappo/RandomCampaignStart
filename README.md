@@ -8,7 +8,7 @@ Now start with random Mechs or Mercenaries at the start of the campaign! This al
 
 **SETTINGS**
 
-*Global toggles that effect both types of randomizers. FullRandomMode: true for complete randomization, false for Original 
+* *Global toggles that effect both types of randomizers. FullRandomMode: true for complete randomization, false for Original 
 Method Randomization.*
 
 Setting | Description
@@ -20,7 +20,7 @@ NumberRandomRonin: 0 | How many random Ronin from the global pool in starting po
 NumberProceduralPilots: 0 | How many random rookie pilots in starting pool
 
 
-*Specify which Ronin you want to have in your game to start. NumberRoninFromList will specify how many Ronin will be randomly selected from amongst this list.*
+* *Specify which Ronin you want to have in your game to start. NumberRoninFromList will specify how many Ronin will be randomly selected from amongst this list.*
 
 Setting | Description
 --------|------------
@@ -35,7 +35,7 @@ StartingRonin: | List of Ronin. Default is vanilla pilots
 
 
 
-*Settings for Full Random Mode. Maximum Lance Size = 6.*
+* *Settings for Full Random Mode. Maximum Lance Size = 6.*
 
 Setting | Description
 --------|------------
@@ -45,7 +45,7 @@ AllowDuplicateChassis: false | Can you get more than one of the same chassis typ
 AllowCustomMechs: false | In case you add custom mechs you can disable them to start
 
 
-*Settings for Original Method. Use this method to input specific mechs to be randomized amongst. Also, this allows precise control of mech weight classes.*
+* *Settings for Original Method. Use this method to input specific mechs to be randomized amongst. Also, this allows precise control of mech weight classes.*
 
 Setting | Description
 --------|------------
