@@ -234,7 +234,7 @@ namespace RandomCampaignStart
 
                         // does the mech fit into the lance?
                         currentLanceWeight = currentLanceWeight + mechDef.Chassis.Tonnage;
-                        if (!(maxWeight >= currentLanceWeight))
+                        if (maxWeight >= currentLanceWeight)
                         {
                             continue;
                         }
