@@ -1,11 +1,12 @@
 # FullRandomCampaignStart
 Gives random mechs and mechwarriors at game start.
+<br>
 
 **SUMMARY**
 
 Now start with random Mechs or Mercenaries at the start of the campaign! This allows for either fully random mechs where you can define the lance size, tonnage range, and a maximum tonnage per mech allowance. Also includes a tonnage range for the "traditional" mech randomizer where youcan input a list of mechs and specify amongst weight classes. 
 
-
+<br>
 **SETTINGS**
 
 * *Global toggles that effect both types of randomizers. FullRandomMode: true for complete randomization, false for Original 
@@ -37,7 +38,7 @@ StartingRonin: | List of Ronin. Default is vanilla pilots
 	"pilot_sim_starter_glitch"
 ```
 
-> 
+<br><br> 
 
 * *Settings for Full Random Mode. Maximum Lance Size = 6.*
 
@@ -48,7 +49,7 @@ MaximumLanceSize: 6 | MaximumMechWeight: 45				Heaviest mech that you can start 
 AllowDuplicateChassis: false | Can you get more than one of the same chassis type?
 AllowCustomMechs: false | In case you add custom mechs you can disable them to start
 
-> 
+<br><br>
 * *Settings for Original Method. Use this method to input specific mechs to be randomized amongst. Also, this allows precise control of mech weight classes.*
 
 Setting | Description
