@@ -14,7 +14,6 @@ Method Randomization.]
 
 Setting | Description
 --------|------------
-
 FullRandomMode: true | (true for Full Random Mode, false for Traditional Randome Mode)
 MinimumStartingWeight: 160 | (Specify weight range for lance)
 MaximumStartingWeight: 170 | 
