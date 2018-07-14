@@ -19,7 +19,11 @@ MaximumStartingWeight: 170 |
 NumberRandomRonin: 0 | How many random Ronin from the global pool in starting pool
 NumberProceduralPilots: 0 | How many random rookie pilots in starting pool
 
-<p><p><p>
+
+
+
+
+
 * *Specify which Ronin you want to have in your game to start. NumberRoninFromList will specify how many Ronin will be randomly selected from amongst this list.*
 
 Setting | Description
