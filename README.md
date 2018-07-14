@@ -33,11 +33,11 @@ StartingRonin:					(List of Ronin. Default is vanilla pilots)
 
 [Settings for Full Random Mode. Maximum Lance Size = 6.]
 
-MinimimumLanceSize: 5				(Specify minimum and maximum lance size to start)
-MaximumLanceSize: 6
-MaximumMechWeight: 45				(Heaviest mech that you can start with)
-AllowDuplicateChassis: false			(Can you get more than one of the same chassis type?)
-AllowCustomMechs: false				(In case you add custom mechs you can disable them to start)
+>MinimimumLanceSize: 5				(Specify minimum and maximum lance size to start)
+>MaximumLanceSize: 6
+>MaximumMechWeight: 45				(Heaviest mech that you can start with)
+>AllowDuplicateChassis: false			(Can you get more than one of the same chassis type?)
+>AllowCustomMechs: false			(In case you add custom mechs you can disable them to start)
 
 
 [Settings for Original Method. Use this method to input specific mechs to be randomized amongst. Also, this allows precise control of mech weight classes.]
