@@ -18,7 +18,7 @@ MinimumStartingWeight: 160 | Specify weight range for lance
 MaximumStartingWeight: 170 | 
 NumberRandomRonin: 0 | How many random Ronin from the global pool in starting pool
 NumberProceduralPilots: 0 | How many random rookie pilots in starting pool
->
+> 
 
 * *Specify which Ronin you want to have in your game to start. NumberRoninFromList will specify how many Ronin will be randomly selected from amongst this list.*
 
@@ -33,7 +33,7 @@ StartingRonin: | List of Ronin. Default is vanilla pilots
 	"pilot_sim_starter_glitch"
 ```
 
->
+> 
 
 * *Settings for Full Random Mode. Maximum Lance Size = 6.*
 
@@ -44,7 +44,7 @@ MaximumLanceSize: 6 | MaximumMechWeight: 45				Heaviest mech that you can start 
 AllowDuplicateChassis: false | Can you get more than one of the same chassis type?
 AllowCustomMechs: false | In case you add custom mechs you can disable them to start
 
->
+> 
 * *Settings for Original Method. Use this method to input specific mechs to be randomized amongst. Also, this allows precise control of mech weight classes.*
 
 Setting | Description
