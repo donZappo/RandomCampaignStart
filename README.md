@@ -20,6 +20,8 @@ MinimumStartingWeight: 160 | Specify weight range for lance
 MaximumStartingWeight: 170 | 
 NumberRandomRonin: 0 | How many random Ronin from the global pool in starting pool
 NumberProceduralPilots: 0 | How many random rookie pilots in starting pool
+RemoveAncestralMech: false | false - start with Ancestral BJ-1
+MechPercentageStartingCost: 0 | Percentage cost of Mech Value to pay for your starting lance.
 
 
 <br><br>
@@ -55,7 +57,6 @@ AllowCustomMechs: false | In case you add custom mechs you can disable them to s
 
 Setting | Description
 --------|------------
-RemoveAncestralMech: false | false - start with Ancestral BJ-1
 NumberAssaultMechs: 0 | How many of each weight class to start with
 NumberHeavyMechs: 0 | 
 NumberMediumMechs: 3 | 
