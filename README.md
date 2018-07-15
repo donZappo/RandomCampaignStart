@@ -19,7 +19,10 @@ FullRandomMode: true | true for Full Random Mode, false for Traditional Randome 
 MinimumStartingWeight: 160 | Specify weight range for lance
 MaximumStartingWeight: 170 | 
 NumberRandomRonin: 0 | How many random Ronin from the global pool in starting pool
-NumberProceduralPilots: 0 | How many random rookie pilots in starting pool
+NumberProceduralPilots: 3 | How many random rookie pilots in starting pool
+RemoveAncestralMech: false | false - start with Ancestral BJ-1
+MechPercentageStartingCost: 0 | Percentage cost of Mech Value to pay for your starting lance.
+RemoveAncestralMech: | Do you want the Ancestral mech removed from the starting lance?
 
 
 <br><br>
@@ -30,7 +33,7 @@ NumberProceduralPilots: 0 | How many random rookie pilots in starting pool
 
 Setting | Description
 --------|------------
-NumberRoninFromList: 4 | How many ronin will be randomly selected from the following list
+NumberRoninFromList: 1 | How many ronin will be randomly selected from the following list
 StartingRonin: | List of Ronin. Default is vanilla pilots
 ```
 	"pilot_sim_starter_medusa",
@@ -49,13 +52,16 @@ MinimimumLanceSize: 5 | Specify minimum and maximum lance size to start
 MaximumLanceSize: 6 | MaximumMechWeight: 45				Heaviest mech that you can start with
 AllowDuplicateChassis: false | Can you get more than one of the same chassis type?
 AllowCustomMechs: false | In case you add custom mechs you can disable them to start
+IgnoreAncestralMech: false | If true, will ignore the Ancestral Mech for lance size and weight calculations.
+ExcludedMechs: [] | Create an array of mechs to be excluded from lance building.
 
 <br><br>
+
+
 * *Settings for Original Method. Use this method to input specific mechs to be randomized amongst. Also, this allows precise control of mech weight classes.*
 
 Setting | Description
 --------|------------
-RemoveAncestralMech: false | false - start with Ancestral BJ-1
 NumberAssaultMechs: 0 | How many of each weight class to start with
 NumberHeavyMechs: 0 | 
 NumberMediumMechs: 3 | 
