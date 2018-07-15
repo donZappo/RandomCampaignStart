@@ -6,6 +6,9 @@ Gives random mechs and mechwarriors at game start.
 
 Now start with random Mechs or Mercenaries at the start of the campaign! This allows for either fully random mechs where you can define the lance size, tonnage range, and a maximum tonnage per mech allowance. Also includes a tonnage range for the "traditional" mech randomizer where youcan input a list of mechs and specify amongst weight classes. 
 
+**NOTE**
+If your settings cannot build a valid lance, then you will be given a lance of spiders! If this happens, take a close look at your settings and figure out what is wrong.
+
 <br>
 
 **SETTINGS**
