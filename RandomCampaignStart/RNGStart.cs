@@ -55,7 +55,6 @@ namespace RandomCampaignStart
 
         public static void Postfix(SimGameState __instance)
         {
-
             if (RngStart.Settings.NumberRandomRonin + RngStart.Settings.NumberProceduralPilots + RngStart.Settings.NumberRoninFromList > 0)
             {
                 while (__instance.PilotRoster.Count > 0)
@@ -77,16 +76,28 @@ namespace RandomCampaignStart
                             __instance.AddPilotToRoster(pilotDef, true);
                     }
                 }
-
+                
                 if (RngStart.Settings.NumberRandomRonin > 0)
                 {
                     List<PilotDef> list2 = new List<PilotDef>(__instance.RoninPilots);
+                    for (int m = list2.Count - 1; m >= 0; m--)
+                    {
+                        for (int n = 0; n < __instance.PilotRoster.Count; n++)
+                        {
+                            if (list2[m].Description.Id == __instance.PilotRoster[n].Description.Id)
+                            {
+                                list2.RemoveAt(m);
+                                break;
+                            }
+                        }
+                    }
                     list2.RNGShuffle<PilotDef>();
                     for (int i = 0; i < RngStart.Settings.NumberRandomRonin; i++)
                     {
                         list.Add(list2[i]);
                     }
                 }
+                    
                 if (RngStart.Settings.NumberProceduralPilots > 0)
                 {
                     List<PilotDef> list3;
@@ -139,6 +150,7 @@ namespace RandomCampaignStart
             //Logger.Debug($"Done memoizing");
             if (!RngStart.Settings.FullRandomMode)
             {
+                var AncestralMechDef = new MechDef(__instance.DataManager.MechDefs.Get(__instance.ActiveMechs[0].Description.Id), __instance.GenerateSimGameUID());
                 // remove ancestral mech if specified
                 if (RngStart.Settings.RemoveAncestralMech)
                 {
@@ -156,7 +168,7 @@ namespace RandomCampaignStart
                     }
                     else
                     {
-                        currentLanceWeight = 45;
+                        currentLanceWeight = AncestralMechDef.Chassis.Tonnage;
                         baySlot = 1;
                     }
                     if (!firstrun)
@@ -194,15 +206,25 @@ namespace RandomCampaignStart
             else  // G new mode
             {
                 Logger.Debug($"New mode");
-                __instance.ActiveMechs.Remove(0);
-                baySlot = 0;
 
                 // cap the lance tonnage
                 float maxWeight = Math.Min(100 * RngStart.Settings.MaximumLanceSize, RngStart.Settings.MaximumStartingWeight);
                 float maxLanceSize = Math.Min(6, RngStart.Settings.MaximumLanceSize);
 
                 // loop until we have 4-6 mechs
-
+                var AncestralMechDef = new MechDef(__instance.DataManager.MechDefs.Get(__instance.ActiveMechs[0].Description.Id), __instance.GenerateSimGameUID());
+                if (RngStart.Settings.RemoveAncestralMech == true)
+                {
+                    __instance.ActiveMechs.Remove(0);
+                    baySlot = 0;
+                    currentLanceWeight = 0;
+                }
+                else
+                {
+                    baySlot = 1;
+                    lance.Add(AncestralMechDef);
+                    currentLanceWeight = AncestralMechDef.Chassis.Tonnage;
+                }
                 // if the lance weights 
                 // if the number of mechs is between 4 and 6.  or settings
 
@@ -220,6 +242,7 @@ namespace RandomCampaignStart
                     //    Logger.Debug($"K:{chasis.Key}");
                     //}
                     #endregion
+                    
 
                     // build lance collection from dictionary for speed
                     // TODO only when lance is valid do we instantiate it
@@ -284,6 +307,18 @@ namespace RandomCampaignStart
                         Logger.Debug($"Clearing invalid lance");
                         currentLanceWeight = 0;
                         lance.Clear();
+                        if (RngStart.Settings.RemoveAncestralMech == true)
+                        {
+                            __instance.ActiveMechs.Remove(0);
+                            baySlot = 0;
+                            currentLanceWeight = 0;
+                        }
+                        else
+                        {
+                            baySlot = 1;
+                            lance.Add(AncestralMechDef);
+                            currentLanceWeight = AncestralMechDef.Chassis.Tonnage;
+                        }
                         continue;
                     }
                     
@@ -300,8 +335,20 @@ namespace RandomCampaignStart
                 // valid lance created
             }
         }
-        // TODO apply back to legacy mode
-        //__instance.AddMech(baySlot, mechDef, true, true, false);
+
+        [HarmonyPatch(typeof(SimGameState), "_OnDefsLoadComplete")]
+        public static class Initialize_New_Game
+        {
+            public static void Postfix(SimGameState __instance)
+            {
+                float cost = 0;
+                foreach (MechDef mechdef in __instance.ActiveMechs.Values)
+                {
+                    cost += mechdef.Description.Cost * RngStart.Settings.MechPercentageStartingCost/100;
+                }
+                __instance.AddFunds(-(int)cost, null, false);
+            }
+        }
 
         internal class ModSettings
         {
@@ -323,6 +370,7 @@ namespace RandomCampaignStart
             public bool AllowCustomMechs = false;
             public bool FullRandomMode = true;
             public bool AllowDuplicateChassis = false;
+            public float MechPercentageStartingCost = 0.2f;
 
             public List<string> StartingRonin = new List<string>();
             public int NumberRoninFromList = 4;
