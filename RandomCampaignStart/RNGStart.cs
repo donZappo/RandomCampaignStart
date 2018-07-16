@@ -112,13 +112,22 @@ namespace RandomCampaignStart
 
             //Logger.Debug($"Starting lance creation {RngStart.Settings.MinimumStartingWeight} - {RngStart.Settings.MaximumStartingWeight} tons");
             // mechs
+
+            var AncestralMechDef = new MechDef(__instance.DataManager.MechDefs.Get(__instance.ActiveMechs[0].Description.Id), __instance.GenerateSimGameUID());
+            bool RemoveAncestralMech = RngStart.Settings.RemoveAncestralMech;
+            if (AncestralMechDef.Description.Id == "mechdef_centurion_TARGETDUMMY")
+            {
+                RemoveAncestralMech = true;
+            }
             var lance = new List<MechDef>();
             float currentLanceWeight = 0;
             var baySlot = 1;
 
             // clear the initial lance
-            for (var i = 1; i < __instance.Constants.Story.StartingLance.Length + 1; i++)
+            for (var i = 1; i < 6; i++)
+            {
                 __instance.ActiveMechs.Remove(i);
+            }
 
 
             // memoize dictionary of tonnages since we may be looping a lot
@@ -138,7 +147,7 @@ namespace RandomCampaignStart
                 if (RngStart.Settings.MaximumMechWeight != 100)
                 {
 
-                    if (kvp.Value.Tonnage > RngStart.Settings.MaximumMechWeight)
+                    if (kvp.Value.Tonnage > RngStart.Settings.MaximumMechWeight || kvp.Value.Tonnage < 20)
                     {
                         continue;
                     }
@@ -153,9 +162,8 @@ namespace RandomCampaignStart
                 int LanceCounter = 1;
                 if (!RngStart.Settings.FullRandomMode)
                 {
-                    var AncestralMechDef = new MechDef(__instance.DataManager.MechDefs.Get(__instance.ActiveMechs[0].Description.Id), __instance.GenerateSimGameUID());
                     // remove ancestral mech if specified
-                    if (RngStart.Settings.RemoveAncestralMech && firstrun)
+                    if (RemoveAncestralMech && firstrun)
                     {
                         __instance.ActiveMechs.Remove(0);
                     }
@@ -163,7 +171,7 @@ namespace RandomCampaignStart
 
                     while (currentLanceWeight < RngStart.Settings.MinimumStartingWeight || currentLanceWeight > RngStart.Settings.MaximumStartingWeight)
                     {
-                        if (RngStart.Settings.RemoveAncestralMech)
+                        if (RemoveAncestralMech == true)
                         {
                             currentLanceWeight = 0;
                             baySlot = 0;
@@ -176,7 +184,7 @@ namespace RandomCampaignStart
 
                         if (!firstrun)
                         {
-                            for (var i = baySlot; i < __instance.Constants.Story.StartingLance.Length + 1; i++)
+                            for (var i = baySlot; i < 6; i++)
                             {
                                 __instance.ActiveMechs.Remove(i);
                             }
@@ -206,6 +214,8 @@ namespace RandomCampaignStart
                         // if so, store the mech at index 5 before next iteration.
                         for (int j = 0; j < legacyLance.Count; j++)
                         {
+                            Logger.Debug($"Build Lance");
+                            
                             MechDef mechDef2 = new MechDef(__instance.DataManager.MechDefs.Get(legacyLance[j]), __instance.GenerateSimGameUID(), true);
                             __instance.AddMech(baySlot, mechDef2, true, true, false, null);
                             if (baySlot == 5 && j + 1 < legacyLance.Count)
@@ -239,18 +249,24 @@ namespace RandomCampaignStart
                     //Logger.Debug($"New mode");
 
                     // cap the lance tonnage
-                    float maxWeight = Math.Min(100 * RngStart.Settings.MaximumLanceSize, RngStart.Settings.MaximumStartingWeight);
-                    float maxLanceSize = Math.Min(6, RngStart.Settings.MaximumLanceSize);
+                    int minLanceSize = RngStart.Settings.MinimumLanceSize;
+                    float maxWeight = RngStart.Settings.MaximumStartingWeight;
+                    float maxLanceSize = 6;
+                    bool firstTargetRun = false;
 
-                    // loop until we have 4-6 mechs
-                    var AncestralMechDef = new MechDef(__instance.DataManager.MechDefs.Get(__instance.ActiveMechs[0].Description.Id), __instance.GenerateSimGameUID());
-                    if (RngStart.Settings.RemoveAncestralMech == true)
+                    if (RemoveAncestralMech == true)
                     {
                         __instance.ActiveMechs.Remove(0);
                         baySlot = 0;
                         currentLanceWeight = 0;
+                        if (AncestralMechDef.Description.Id == "mechdef_centurion_TARGETDUMMY" && RngStart.Settings.IgnoreAncestralMech == true)
+                        {
+                            maxLanceSize = RngStart.Settings.MaximumLanceSize + 1;
+                            firstTargetRun = true;
+                            minLanceSize = minLanceSize + 1;
+                        }
                     }
-                    else if ((!RngStart.Settings.RemoveAncestralMech && RngStart.Settings.IgnoreAncestralMech))
+                    else if ((!RemoveAncestralMech && RngStart.Settings.IgnoreAncestralMech))
                     {
                         lance.Add(AncestralMechDef);
                         currentLanceWeight = 0;
@@ -262,10 +278,12 @@ namespace RandomCampaignStart
                         lance.Add(AncestralMechDef);
                         currentLanceWeight = AncestralMechDef.Chassis.Tonnage;
                     }
-                    // if the lance weights 
-                    // if the number of mechs is between 4 and 6.  or settings
+                    
                     bool dupe = false;
-                    while (RngStart.Settings.MinimumLanceSize > lance.Count || currentLanceWeight < RngStart.Settings.MinimumStartingWeight)
+                    bool excluded = false;
+                    bool blacklisted = false;
+                    bool TargetDummy = false;
+                    while (minLanceSize > lance.Count || currentLanceWeight < RngStart.Settings.MinimumStartingWeight)
                     {
                         
                         #region Def listing loops
@@ -283,13 +301,12 @@ namespace RandomCampaignStart
 
 
                         // build lance collection from dictionary for speed
-                        // TODO only when lance is valid do we instantiate it
+                        
                         var randomMech = mechTonnages.ElementAt(rng.Next(0, mechTonnages.Count));
                         var mechString = randomMech.Key.Replace("chassisdef", "mechdef");
                         // getting chassisdefs so renaming the key to match mechdefs Id
                         //var mechDef = new MechDef(__instance.DataManager.MechDefs.Get(mechString), __instance.GenerateSimGameUID());
                         var mechDef = new MechDef(__instance.DataManager.MechDefs.Get(mechString), __instance.GenerateSimGameUID());
-
                         //It's not a BUG, it's a FEATURE.
                         if (LanceCounter > RngStart.Settings.SpiderLoops)
                         {
@@ -305,16 +322,21 @@ namespace RandomCampaignStart
 
                         if (mechDef.MechTags.Contains("BLACKLISTED"))
                         {
+                            currentLanceWeight = 0;
+                            blacklisted = true;
+
                             //Logger.Debug($"Blacklisted! {mechDef.Name}");
-                            currentLanceWeight = RngStart.Settings.MaximumStartingWeight + 5;
                         }
 
+                        //Logger.Debug($"TestMech {mechDef.Name}");
                         foreach (var mechID in RngStart.Settings.ExcludedMechs)
                         {
                             if (mechID == mechDef.Description.Id)
                             {
+                                currentLanceWeight = 0;
+                                excluded = true;
+
                                 //Logger.Debug($"Excluded! {mechDef.Name}");
-                                currentLanceWeight = RngStart.Settings.MaximumStartingWeight + 5;
                             }
                         }
 
@@ -325,44 +347,61 @@ namespace RandomCampaignStart
                             {
                                 if (mech.Name == mechDef.Name)
                                 {
-                                    //Logger.Debug($"SAME SAME! {mech.Name}\t\t{mechDef.Name}");
                                     currentLanceWeight = 0;
                                     dupe = true;
+
+                                    //Logger.Debug($"SAME SAME! {mech.Name}\t\t{mechDef.Name}");
                                 }
                             }
                         }
 
 
                         // does the mech fit into the lance?
-
-                        currentLanceWeight = currentLanceWeight + mechDef.Chassis.Tonnage;
+                        if(TargetDummy)
+                        {
+                            TargetDummy = false;
+                        }
+                        else
+                        {
+                            currentLanceWeight = currentLanceWeight + mechDef.Chassis.Tonnage;
+                        }
+                        
                         if (RngStart.Settings.MaximumStartingWeight >= currentLanceWeight)
                         {
-                            //Logger.Debug($"Adding mech {mechString} {mechDef.Chassis.Tonnage} tons");
-                            lance.Add(mechDef); // worry about sorting later
 
+                            lance.Add(mechDef);
+
+                            //Logger.Debug($"Adding mech {mechString} {mechDef.Chassis.Tonnage} tons");
                             //if (currentLanceWeight > RngStart.Settings.MinimumStartingWeight + mechDef.Chassis.Tonnage)
-                                //Logger.Debug($"Minimum lance tonnage met:  done");
+                            //Logger.Debug($"Minimum lance tonnage met:  done");
 
                             //Logger.Debug($"current: {currentLanceWeight} tons. " +
                             //    $"tonnage remaining: {RngStart.Settings.MaximumStartingWeight - currentLanceWeight}. " +
                             //    $"before lower limit hit: {Math.Max(0, RngStart.Settings.MinimumStartingWeight - currentLanceWeight)}");
                         }
                         // invalid lance, reset
-                        if (currentLanceWeight > RngStart.Settings.MaximumStartingWeight || lance.Count > maxLanceSize || dupe)
+                        if (currentLanceWeight > RngStart.Settings.MaximumStartingWeight || lance.Count > maxLanceSize || dupe || blacklisted || excluded || firstTargetRun)
                         {
                             //Logger.Debug($"Clearing invalid lance");
                             currentLanceWeight = 0;
                             lance.Clear();
                             dupe = false;
+                            blacklisted = false;
+                            excluded = false;
+                            firstTargetRun = false;
                             LanceCounter++;
-                            if (RngStart.Settings.RemoveAncestralMech == true)
+                            if (RemoveAncestralMech == true)
                             {
-                                __instance.ActiveMechs.Remove(0);
                                 baySlot = 0;
                                 currentLanceWeight = 0;
+                                maxLanceSize = RngStart.Settings.MaximumLanceSize;
+                                if (AncestralMechDef.Description.Id == "mechdef_centurion_TARGETDUMMY" && RngStart.Settings.IgnoreAncestralMech == true)
+                                {
+                                    maxLanceSize = RngStart.Settings.MaximumLanceSize + 1;
+                                    TargetDummy = true;
+                                }
                             }
-                            else if (!RngStart.Settings.RemoveAncestralMech && RngStart.Settings.IgnoreAncestralMech)
+                            else if (!RemoveAncestralMech && RngStart.Settings.IgnoreAncestralMech)
                             {
                                 maxLanceSize = RngStart.Settings.MaximumLanceSize + 1;
                                 currentLanceWeight = 0;
@@ -371,6 +410,7 @@ namespace RandomCampaignStart
                             }
                             else
                             {
+                                maxLanceSize = RngStart.Settings.MaximumLanceSize;
                                 currentLanceWeight = AncestralMechDef.Chassis.Tonnage;
                                 lance.Add(AncestralMechDef);
                                 baySlot = 1;
@@ -378,17 +418,24 @@ namespace RandomCampaignStart
                             continue;
                         }
 
-
-
                         //Logger.Debug($"Done a loop");
                     }
                     Logger.Debug($"New mode");
                     Logger.Debug($"Starting lance instantiation");
+
+                    float tonnagechecker = 0;
                     for (int x = 0; x < lance.Count; x++)
                     {
                         Logger.Debug($"x is {x} and lance[x] is {lance[x].Name}");
                         __instance.AddMech(x, lance[x], true, true, false);
+                        tonnagechecker = tonnagechecker + lance[x].Chassis.Tonnage;
                     }
+                    Logger.Debug($"{tonnagechecker}");
+                    float Maxtonnagedifference = tonnagechecker - RngStart.Settings.MaximumStartingWeight;
+                    float Mintonnagedifference = tonnagechecker - RngStart.Settings.MinimumStartingWeight;
+                    Logger.Debug($"Over tonnage Maximum amount: {Maxtonnagedifference}");
+                    Logger.Debug($"Over tonnage Minimum amount: {Mintonnagedifference}");
+                    lance.Clear();
                     // valid lance created
                 }
             }
