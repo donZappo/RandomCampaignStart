@@ -253,10 +253,10 @@ namespace RandomCampaignStart
                     float maxWeight = RngStart.Settings.MaximumStartingWeight;
                     float maxLanceSize = 6;
                     bool firstTargetRun = false;
+                    __instance.ActiveMechs.Remove(0);
 
                     if (RemoveAncestralMech == true)
                     {
-                        __instance.ActiveMechs.Remove(0);
                         baySlot = 0;
                         currentLanceWeight = 0;
                         if (AncestralMechDef.Description.Id == "mechdef_centurion_TARGETDUMMY" && RngStart.Settings.IgnoreAncestralMech == true)
