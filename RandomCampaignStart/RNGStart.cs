@@ -73,7 +73,7 @@ namespace RandomCampaignStart
 
                         // add directly to roster, don't want to get duplicate ronin from random ronin
                         if (pilotDef != null)
-                            __instance.AddPilotToRoster(pilotDef, true);
+                            __instance.AddPilotToRoster(pilotDef, true, true);
                     }
                 }
 
@@ -106,7 +106,7 @@ namespace RandomCampaignStart
                 }
                 foreach (PilotDef def in list)
                 {
-                    __instance.AddPilotToRoster(def, true);
+                    __instance.AddPilotToRoster(def, true, true);
                 }
             }
 
