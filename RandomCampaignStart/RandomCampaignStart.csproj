@@ -41,9 +41,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\OutwardCore\Logger.cs">
-      <Link>Logger.cs</Link>
-    </Compile>
+    <Compile Include="Logger.cs" />
     <Compile Include="RNGStart.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

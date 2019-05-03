@@ -16,6 +16,8 @@
     "MaximumStartingWeight": 170,
     "NumberRandomRonin": 0,
     "NumberProceduralPilots": 0,
+    "MechsAdhereToTimeline": true,
+    "StartYear": -1,
 
 	/* Specify which Ronin you want to have in your game to start. NumberRoninFromList will specify how many Ronin will be randomly selected from amongst this list. */
 	"NumberRoninFromList" : 4,
