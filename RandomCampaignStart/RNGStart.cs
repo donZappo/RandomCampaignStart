@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using BattleTech;
+using BattleTech.UI;
 using Harmony;
 using Newtonsoft.Json;
+using TMPro;
 using static RandomCampaignStart.Logger;
 using static RandomCampaignStart.RandomCampaignStart;
 
@@ -47,13 +49,23 @@ namespace RandomCampaignStart
     {
         public static void Postfix(SimGameState __instance)
         {
-            if (RandomCampaignStart.Settings.StartYear != -1)
-            {
-                Traverse.Create(__instance)
-                    .Property("CampaignStartDate")
-                    .SetValue(new DateTime(RandomCampaignStart.Settings.StartYear, 1, 1));
-                LogDebug("Start time: " + __instance.CampaignStartDate);
-            }
+            if (RandomCampaignStart.Settings.StartYear == -1) return;
+            var date = new DateTime(RandomCampaignStart.Settings.StartYear, 1, 1);
+            SetStartingDateTag(__instance, date);
+            Traverse.Create(__instance).Property("CampaignStartDate").SetValue(date);
+        }
+
+        // credit to mpstark's Timeline mod
+        private static void SetStartingDateTag(SimGameState simGame, DateTime startDate)
+        {
+            var startDateTag = "start_" + GetDayDateTag(startDate);
+            LogDebug($"Setting the starting date tag: {startDateTag}");
+            simGame.CompanyTags.Add(startDateTag);
+        }
+
+        private static string GetDayDateTag(DateTime date)
+        {
+            return $"timeline_{date:yyyy_MM_dd}";
         }
     }
 
@@ -291,7 +303,7 @@ namespace RandomCampaignStart
                             {
                                 LogDebug("Build Lance");
 
-                                MechDef mechDef2 = new MechDef(__instance.DataManager.MechDefs.Get(legacyLance[j]), __instance.GenerateSimGameUID(), true);
+                                var mechDef2 = new MechDef(__instance.DataManager.MechDefs.Get(legacyLance[j]), __instance.GenerateSimGameUID(), true);
                                 __instance.AddMech(baySlot, mechDef2, true, true, false, null);
                                 if (baySlot == 5 && j + 1 < legacyLance.Count)
                                 {
@@ -323,7 +335,7 @@ namespace RandomCampaignStart
                     else
                     {
                         // full random mode
-                        LogDebug("New mode");
+                        LogDebug("Full random mode");
                         int minLanceSize = RandomCampaignStart.Settings.MinimumLanceSize;
                         float maxWeight = RandomCampaignStart.Settings.MaximumStartingWeight;
                         float maxLanceSize = 6;
@@ -383,14 +395,14 @@ namespace RandomCampaignStart
                             if (RandomCampaignStart.Settings.MechsAdhereToTimeline)
                             {
                                 var mechCanExist = mechDef.MinAppearanceDate <= UnityGameInstance.BattleTechGame.Simulation.CampaignStartDate;
-                                LogDebug($"{mechDef.Chassis.VariantName} appears in: {mechDef.MinAppearanceDate.ToString()} ({(mechCanExist ? "Pass" : "Fail")})");
+                                LogDebug($"{mechDef.Chassis.VariantName,-10} appears in: {((DateTime) mechDef.MinAppearanceDate).ToShortDateString(),25} ({(mechCanExist ? "Pass" : "Fail")})");
                                 if (!mechCanExist) continue;
                             }
 
                             // SPIDERS! It's not a BUG, it's a FEATURE.
                             if (LanceCounter > RandomCampaignStart.Settings.SpiderLoops)
                             {
-                                MechDef mechDefSpider = new MechDef(__instance.DataManager.MechDefs.Get("mechdef_spider_SDR-5V"), __instance.GenerateSimGameUID(), true);
+                                var mechDefSpider = new MechDef(__instance.DataManager.MechDefs.Get("mechdef_spider_SDR-5V"), __instance.GenerateSimGameUID(), true);
                                 lance.Add(mechDefSpider); // worry about sorting later
                                 for (int j = baySlot; j < 6; j++)
                                 {
@@ -447,19 +459,21 @@ namespace RandomCampaignStart
                             {
                                 lance.Add(mechDef);
 
-                                LogDebug($"Adding mech {mechString} {mechDef.Chassis.Tonnage} tons");
+                                LogDebug($">> Adding mech {mechString} {mechDef.Chassis.Tonnage} tons");
                                 if (currentLanceWeight > RandomCampaignStart.Settings.MinimumStartingWeight + mechDef.Chassis.Tonnage)
                                     LogDebug("Minimum lance tonnage met:  done");
 
-                                LogDebug($"current: {currentLanceWeight} tons. " +
-                                         $"tonnage remaining: {RandomCampaignStart.Settings.MaximumStartingWeight - currentLanceWeight}. " +
-                                         $"before lower limit hit: {Math.Max(0, RandomCampaignStart.Settings.MinimumStartingWeight - currentLanceWeight)}");
+                                //LogDebug($"current: {currentLanceWeight} tons. " +
+                                //         $"tonnage remaining: {RandomCampaignStart.Settings.MaximumStartingWeight - currentLanceWeight}. " +
+                                //         $"before lower limit hit: {Math.Max(0, RandomCampaignStart.Settings.MinimumStartingWeight - currentLanceWeight)}");
                             }
 
                             // invalid lance, reset
-                            if (currentLanceWeight > RandomCampaignStart.Settings.MaximumStartingWeight || lance.Count > maxLanceSize || dupe || blacklisted || excluded || firstTargetRun)
+                            if (currentLanceWeight > RandomCampaignStart.Settings.MaximumStartingWeight ||
+                                lance.Count > maxLanceSize ||
+                                dupe || blacklisted || excluded || firstTargetRun)
                             {
-                                //Logger.LogDebug($"Clearing invalid lance");
+                                Logger.LogDebug($"<< Clearing invalid lance");
                                 currentLanceWeight = 0;
                                 lance.Clear();
                                 dupe = false;
@@ -495,18 +509,17 @@ namespace RandomCampaignStart
                             }
                         }
 
-                        LogDebug("Starting lance instantiation");
-                        float tonnagechecker = 0;
+                        LogDebug("Adding mechs to SimGame");
                         for (int x = 0; x < lance.Count; x++)
                         {
-                            LogDebug($"mech {x} is {lance[x].Chassis.VariantName}");
+                            LogDebug($"Mech {x} is {lance[x].Chassis.VariantName} {lance[x].Chassis.Tonnage}T ({lance[x].Chassis.weightClass}) circa {((DateTime)lance[x].MinAppearanceDate).ToShortDateString()}");
                             __instance.AddMech(x, lance[x], true, true, false);
-                            tonnagechecker = tonnagechecker + lance[x].Chassis.Tonnage;
                         }
 
-                        LogDebug($"tonnagechecker: {tonnagechecker}");
-                        var Maxtonnagedifference = tonnagechecker - RandomCampaignStart.Settings.MaximumStartingWeight;
-                        var Mintonnagedifference = tonnagechecker - RandomCampaignStart.Settings.MinimumStartingWeight;
+                        var tonnage = lance.GroupBy(x => x).Select(mech => mech.Key.Chassis.Tonnage).Sum();
+                        LogDebug($"Tonnage: {tonnage}");
+                        var Maxtonnagedifference = tonnage - RandomCampaignStart.Settings.MaximumStartingWeight;
+                        var Mintonnagedifference = tonnage - RandomCampaignStart.Settings.MinimumStartingWeight;
                         LogDebug($"Over tonnage Maximum amount: {Maxtonnagedifference}");
                         LogDebug($"Over tonnage Minimum amount: {Mintonnagedifference}");
                         lance.Clear();

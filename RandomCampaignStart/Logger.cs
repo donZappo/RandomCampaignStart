@@ -41,7 +41,7 @@ namespace RandomCampaignStart
             if (!RandomCampaignStart.Settings.Debug) return;
             using (var writer = new StreamWriter(LogFilePath, false))
             {
-                writer.WriteLine($"{DateTime.Now.ToLongTimeString()} Init");
+                writer.WriteLine($"{DateTime.Now.ToLongTimeString()} RandomCampaignStart Init");
             }
         }
     }
