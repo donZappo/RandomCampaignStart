@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using BattleTech;
-using BattleTech.UI;
 using Harmony;
 using Newtonsoft.Json;
-using TMPro;
 using static RandomCampaignStart.Logger;
 using static RandomCampaignStart.RandomCampaignStart;
 
