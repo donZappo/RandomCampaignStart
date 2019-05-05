@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using BattleTech;
+using BattleTech.UI;
 using Harmony;
+using HBS;
 using Newtonsoft.Json;
 using Org.BouncyCastle.Crypto.Parameters;
 using static RandomCampaignStart.Logger;
@@ -246,121 +249,151 @@ namespace RandomCampaignStart
                 }
                 else
                 {
-                    LogDebug("Full random mode");
-
-                    lance.Clear();
-                    var lanceWeight = 0;
-                    var mechDefs = __instance.DataManager.MechDefs.Select(kvp => kvp.Value).ToList();
-
-                    if (ModSettings.RemoveAncestralMech)
-                    {
-                        __instance.ActiveMechs.Remove(0);
-                        if (AncestralMechDef.Description.Id == "mechdef_centurion_TARGETDUMMY" &&
-                            ModSettings.IgnoreAncestralMech)
-                        {
-                            ModSettings.MaximumLanceSize++;
-                            ModSettings.MinimumLanceSize++;
-                        }
-                    }
-                    else if (ModSettings.IgnoreAncestralMech)
-                    {
-                        lance.Add(AncestralMechDef);
-                        ModSettings.MaximumLanceSize++;
-                    }
-                    else
-                    {
-                        lance.Add(AncestralMechDef);
-                        lanceWeight = (int) AncestralMechDef.Chassis.Tonnage;
-                    }
-
-                    while (lance.Count < ModSettings.MinimumLanceSize ||
-                           lanceWeight < ModSettings.MinimumStartingWeight ||
-                           lance.Count + 2 <= ModSettings.MinimumLanceSize &&
-                           lanceWeight + 20 > ModSettings.MaximumStartingWeight)
-                    {
-                        var matchingMechs = mechDefs
-                            .Where(mech => mech.Chassis.Tonnage <= ModSettings.MaximumMechWeight &&
-                                           mech.Chassis.Tonnage + lanceWeight <= ModSettings.MaximumStartingWeight);
-                        if (ModSettings.MechsAdhereToTimeline)
-                        {
-                            matchingMechs =
-                                matchingMechs.Where(mech => mech.MinAppearanceDate <= UnityGameInstance.BattleTechGame.Simulation.CampaignStartDate);
-                        }
-
-                        var mechDefString = matchingMechs.ElementAt(
-                                UnityEngine.Random.Range(0, matchingMechs.Count()))
-                            .Description.Id.Replace("chassisdef", "mechdef");
-                        var mechDef = new MechDef(
-                            __instance.DataManager.MechDefs.Get(mechDefString), __instance.GenerateSimGameUID());
-                        LogDebug("Generated " + mechDefString);
-
-                        if (mechDef.MechTags.Contains("BLACKLISTED"))
-                        {
-                            LogDebug($"[BLACKLISTED] {mechDef.Name}");
-                            continue;
-                        }
-
-                        var flag = false;
-                        foreach (var mechID in ModSettings.ExcludedMechs)
-                        {
-                            if (mechID != mechDef.Description.Id) continue;
-                            LogDebug($"[EXCLUDED] {mechDef.Name}");
-                            flag = true;
-                        }
-
-                        if (flag) continue;
-
-                        if (!ModSettings.AllowDuplicateChassis)
-                        {
-                            flag = false;
-                            foreach (var mech in lance)
-                            {
-                                if (mech.Name != mechDef.Name) continue;
-                                LogDebug($"[DUPE] {mechDef.Name}");
-                                flag = true;
-                            }
-
-                            if (matchingMechs.Count() == 1)
-                            {
-                                LogDebug("[BAD LANCE]");
-                                lance.Clear();
-                                lanceWeight = 0;
-                                continue;
-                            }
-
-                            if (flag) continue;
-                        }
-
-                        if (mechDef.Chassis.Tonnage + lanceWeight <= ModSettings.MaximumStartingWeight &&
-                            lance.Count < ModSettings.MaximumLanceSize)
-                        {
-                            lance.Add(mechDef);
-                            lanceWeight += (int) mechDef.Chassis.Tonnage;
-                            LogDebug($"Adding {mechDef.Description.Id}, up to {lanceWeight}T");
-                        }
-
-                        LogDebug($"Tonnage {lanceWeight} (clamp: {ModSettings.MinimumStartingWeight}-{ModSettings.MaximumStartingWeight}), mechs {lance.Count} (clamp: {ModSettings.MinimumLanceSize}-{ModSettings.MaximumLanceSize})");
-
-                        if (lance.Count == ModSettings.MaximumLanceSize &&
-                            lanceWeight < ModSettings.MinimumStartingWeight)
-                        {
-                            LogDebug("[BAD LANCE]");
-                            lance.Clear();
-                            lanceWeight = 0;
-                        }
-                    }
-
-                    LogDebug("[COMPLETE: ADDING MECHS]");
-                    for (var x = 0; x < lance.Count; x++)
-                    {
-                        LogDebug($"Mech {x + 1} is {lance[x].Name,-20} {lance[x].Chassis.VariantName,-10} {((DateTime) lance[x].MinAppearanceDate).Year,5} ({lance[x].Chassis.weightClass} {lance[x].Chassis.Tonnage}T)");
-
-                        __instance.AddMech(x, lance[x], true, true, false);
-                    }
-
-                    var tonnage = lance.GroupBy(x => x).Select(mech => mech.Key.Chassis.Tonnage).Sum();
-                    LogDebug($"Tonnage: {tonnage}");
+                    FullRandom(__instance, lance, AncestralMechDef);
                 }
+            }
+        }
+
+        private static void FullRandom(SimGameState __instance, List<MechDef> lance, MechDef AncestralMechDef)
+        {
+            LogDebug("Full random mode");
+            lance.Clear();
+            var lanceWeight = 0;
+            var mechDefs = __instance.DataManager.MechDefs.Select(kvp => kvp.Value).ToList();
+
+            if (ModSettings.RemoveAncestralMech)
+            {
+                __instance.ActiveMechs.Remove(0);
+                if (AncestralMechDef.Description.Id == "mechdef_centurion_TARGETDUMMY" &&
+                    ModSettings.IgnoreAncestralMech)
+                {
+                    ModSettings.MaximumLanceSize++;
+                    ModSettings.MinimumLanceSize++;
+                }
+            }
+            else if (ModSettings.IgnoreAncestralMech)
+            {
+                lance.Add(AncestralMechDef);
+                ModSettings.MaximumLanceSize++;
+            }
+            else
+            {
+                lance.Add(AncestralMechDef);
+                lanceWeight = (int) AncestralMechDef.Chassis.Tonnage;
+            }
+
+            while (lance.Count < ModSettings.MinimumLanceSize ||
+                   lanceWeight < ModSettings.MinimumStartingWeight ||
+                   lance.Count + 2 <= ModSettings.MinimumLanceSize &&
+                   lanceWeight + 15 > ModSettings.MaximumStartingWeight)
+            {
+                var matchingMechs = mechDefs
+                    .Where(mech => mech.Chassis.Tonnage <= ModSettings.MaximumMechWeight &&
+                                   mech.Chassis.Tonnage + lanceWeight <= ModSettings.MaximumStartingWeight);
+                if (ModSettings.MechsAdhereToTimeline)
+                {
+                    matchingMechs =
+                        matchingMechs.Where(
+                            mech => mech.MinAppearanceDate <=
+                                    UnityGameInstance.BattleTechGame.Simulation.CampaignStartDate);
+                }
+
+                var mechDefString = matchingMechs.ElementAt(
+                        UnityEngine.Random.Range(0, matchingMechs.Count()))
+                    .Description.Id.Replace("chassisdef", "mechdef");
+
+                var mechDef = new MechDef(
+                    __instance.DataManager.MechDefs.Get(mechDefString), __instance.GenerateSimGameUID());
+                LogDebug("Generated " + mechDefString);
+
+                if (mechDef.MechTags.Contains("BLACKLISTED"))
+                {
+                    LogDebug($"[BLACKLISTED] {mechDef.Name}");
+                    continue;
+                }
+
+                var flag = false;
+                foreach (var mechID in ModSettings.ExcludedMechs)
+                {
+                    if (mechID != mechDef.Description.Id) continue;
+                    LogDebug($"[EXCLUDED] {mechDef.Name}");
+                    flag = true;
+                }
+
+                if (flag) continue;
+
+                if (!ModSettings.AllowDuplicateChassis)
+                {
+                    flag = false;
+                    foreach (var mech in lance)
+                    {
+                        if (mech.Name != mechDef.Name) continue;
+                        LogDebug($"[DUPE] {mechDef.Name}");
+                        flag = true;
+                    }
+
+                    if (flag && matchingMechs.Count() == 1)
+                    {
+                        LogDebug("[BAD LANCE]");
+                        lance.Clear();
+                        lanceWeight = 0;
+                        continue;
+                    }
+
+                    if (flag) continue;
+                }
+
+                if (mechDef.Chassis.Tonnage + lanceWeight <= ModSettings.MaximumStartingWeight &&
+                    lance.Count < ModSettings.MaximumLanceSize)
+                {
+                    lance.Add(mechDef);
+                    lanceWeight += (int) mechDef.Chassis.Tonnage;
+                    LogDebug($"Adding {mechDef.Description.Id}, up to {lanceWeight}T");
+                }
+
+                LogDebug($"Tonnage {lanceWeight} (clamp: {ModSettings.MinimumStartingWeight}-{ModSettings.MaximumStartingWeight}), mechs {lance.Count} (clamp: {ModSettings.MinimumLanceSize}-{ModSettings.MaximumLanceSize})");
+
+                if (lance.Count == ModSettings.MaximumLanceSize &&
+                    lanceWeight < ModSettings.MinimumStartingWeight ||
+                    lance.Count < ModSettings.MinimumLanceSize &&
+                    lanceWeight >= ModSettings.MinimumStartingWeight)
+                {
+                    LogDebug("[BAD LANCE]");
+                    lance.Clear();
+                    lanceWeight = 0;
+                }
+            }
+
+            LogDebug("[COMPLETE: ADDING MECHS]");
+            var sb = new StringBuilder();
+            for (var x = 0; x < lance.Count; x++)
+            {
+                sb.AppendLine($"{lance[x].Chassis.VariantName} {lance[x].Name} ({((DateTime) lance[x].MinAppearanceDate).Year}) {lance[x].Chassis.Tonnage}T ({lance[x].Chassis.weightClass})");
+                LogDebug($"Mech {x + 1} is {lance[x].Name,-15} {lance[x].Chassis.VariantName,-10} {((DateTime) lance[x].MinAppearanceDate).Year,5} ({lance[x].Chassis.weightClass} {lance[x].Chassis.Tonnage}T)");
+                __instance.AddMech(x, lance[x], true, true, false);
+            }
+
+            var tonnage = lance.GroupBy(x => x).Select(mech => mech.Key.Chassis.Tonnage).Sum();
+            LogDebug($"Tonnage: {tonnage}");
+
+            if (ModSettings.Reroll)
+            {
+                GenericPopupBuilder
+                    .Create("This is your starting lance " + tonnage + "T", sb.ToString())
+                    .AddButton("Acknowledged")
+                    .AddButton("Re-roll", delegate { FullRandom(__instance, lance, AncestralMechDef); })
+                    .CancelOnEscape()
+                    //.AddFader(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill, 0.0f, true)
+                    .Render();
+            }
+            else
+            {
+                GenericPopupBuilder
+                    .Create("This is your starting lance " + tonnage + "T", sb.ToString())
+                    .AddButton("Acknowledged")
+                    .CancelOnEscape()
+                    //.AddFader(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill, 0.0f, true)
+                    .Render();
             }
         }
 
@@ -389,7 +422,7 @@ namespace RandomCampaignStart
             }
 
             roninPilotDefs.RNGShuffle();
-            for (int i = 0;
+            for (var i = 0;
                 i < ModSettings.NumberRandomRonin;
                 i++)
             {
@@ -410,18 +443,6 @@ namespace RandomCampaignStart
                     __instance.AddPilotToRoster(pilotDef, true, true);
             }
         }
-
-        //private static IEnumerable<MechDef> MechDefGenerator(SimGameState sim,
-        //    IEnumerable<ChassisDef> chassisList, float currentLanceWeight)
-        //{
-        //    var matchingChassis = chassisList
-        //        .Where(chassis => chassis.Tonnage + currentLanceWeight <= ModSettings.MaximumStartingWeight)
-        //        .ToList();
-        //    var mechDefString = matchingChassis
-        //        .ElementAt(rng.Next(0, matchingChassis.Count())).Description.Id
-        //        .Replace("chassisdef", "mechdef");
-        //    yield return new MechDef(sim.DataManager.MechDefs.Get(mechDefString), sim.GenerateSimGameUID());
-        //}
     }
 
     internal class Settings
@@ -464,5 +485,6 @@ namespace RandomCampaignStart
         public bool UseRandomMechs = true;
         public bool MechsAdhereToTimeline = true;
         public int StartYear = -1;
+        public bool Reroll = true;
     }
 }
