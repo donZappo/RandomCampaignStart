@@ -347,7 +347,6 @@ namespace RandomCampaignStart
                             LogDebug("[BAD LANCE]");
                             lance.Clear();
                             lanceWeight = 0;
-                            continue;
                         }
                     }
 
