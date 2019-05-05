@@ -43,7 +43,7 @@
   <ItemGroup>
     <Compile Include="Logger.cs" />
     <Compile Include="Patches.cs" />
-    <Compile Include="RNGStart.cs" />
+    <Compile Include="RandomCampaignStart.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -21,7 +21,7 @@ namespace RandomCampaignStart
 
         public static void LogDebug(string line)
         {
-            if (!RandomCampaignStart.Settings.Debug) return;
+            if (!RandomCampaignStart.ModSettings.Debug) return;
             using (var writer = new StreamWriter(LogFilePath, true))
             {
                 writer.WriteLine(line);
@@ -38,7 +38,7 @@ namespace RandomCampaignStart
 
         public static void Clear()
         {
-            if (!RandomCampaignStart.Settings.Debug) return;
+            if (!RandomCampaignStart.ModSettings.Debug) return;
             using (var writer = new StreamWriter(LogFilePath, false))
             {
                 writer.WriteLine($"{DateTime.Now.ToLongTimeString()} RandomCampaignStart Init");
