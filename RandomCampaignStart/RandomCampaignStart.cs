@@ -283,18 +283,16 @@ namespace RandomCampaignStart
             }
 
             while (lance.Count < ModSettings.MinimumLanceSize ||
-                   lanceWeight < ModSettings.MinimumStartingWeight ||
-                   lance.Count + 2 <= ModSettings.MinimumLanceSize &&
-                   lanceWeight + 15 > ModSettings.MaximumStartingWeight)
+                   lanceWeight < ModSettings.MinimumStartingWeight)
             {
                 var matchingMechs = mechDefs
                     .Where(mech => mech.Chassis.Tonnage <= ModSettings.MaximumMechWeight &&
-                                   mech.Chassis.Tonnage + lanceWeight <= ModSettings.MaximumStartingWeight);
+                                   mech.Chassis.Tonnage + lanceWeight <= ModSettings.MaximumStartingWeight)
+                    .Except(lance);
                 if (ModSettings.MechsAdhereToTimeline)
                 {
                     matchingMechs =
-                        matchingMechs.Where(
-                            mech => mech.MinAppearanceDate <=
+                        matchingMechs.Where(mech => mech.MinAppearanceDate <=
                                     UnityGameInstance.BattleTechGame.Simulation.CampaignStartDate);
                 }
 
@@ -379,20 +377,18 @@ namespace RandomCampaignStart
             if (ModSettings.Reroll)
             {
                 GenericPopupBuilder
-                    .Create("This is your starting lance " + tonnage + "T", sb.ToString())
-                    .AddButton("Acknowledged")
+                    .Create("This is your starting lance (" + tonnage + "T)", sb.ToString())
+                    .AddButton("Proceed")
                     .AddButton("Re-roll", delegate { FullRandom(__instance, lance, AncestralMechDef); })
                     .CancelOnEscape()
-                    //.AddFader(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill, 0.0f, true)
                     .Render();
             }
             else
             {
                 GenericPopupBuilder
                     .Create("This is your starting lance " + tonnage + "T", sb.ToString())
-                    .AddButton("Acknowledged")
+                    .AddButton("Proceed")
                     .CancelOnEscape()
-                    //.AddFader(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill, 0.0f, true)
                     .Render();
             }
         }
