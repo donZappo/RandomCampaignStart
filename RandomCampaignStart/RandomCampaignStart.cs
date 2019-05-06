@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -41,6 +42,27 @@ namespace RandomCampaignStart
             }
 
             Clear();
+            if (!ModSettings.Debug) return;
+            LogDebug("[SETTINGS]");
+            var settingsFields = typeof(Settings).GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
+            foreach (var field in settingsFields)
+            {
+                if (field.GetValue(ModSettings) is IEnumerable &&
+                    !(field.GetValue(ModSettings) is string))
+                {
+                    LogDebug(field.Name);
+                    foreach (var item in (IEnumerable) field.GetValue(ModSettings))
+                    {
+                        LogDebug("\t" + item);
+                    }
+                }
+                else
+                {
+                    LogDebug($"{field.Name,-30}: {field.GetValue(ModSettings)}");
+                }
+            }
+
+            LogDebug("[END SETTINGS]");
         }
 
         // from https://stackoverflow.com/questions/273313/randomize-a-listt
@@ -83,35 +105,133 @@ namespace RandomCampaignStart
     {
         public static void Postfix(SimGameState __instance)
         {
-            if (ModSettings.NumberRandomRonin +
-                ModSettings.NumberProceduralPilots +
-                ModSettings.NumberRoninFromList > 0)
+            var simGame = __instance;
+            if (ModSettings.StartingRonin.Count + ModSettings.NumberRandomRonin + ModSettings.NumberProceduralPilots > 0)
             {
+                // LogDebug("Randomizing pilots, removing old pilots");
+                //
+                // // clear roster
+                // while (simGame.PilotRoster.Count > 0)
+                //     simGame.PilotRoster.RemoveAt(0);
+                //
+                // // starting ronin that are always present
+                // if (ModSettings.StartingRonin.Count > 0)
+                // {
+                //     for (var i = 0; i < ModSettings.NumberRoninFromList; i++)
+                //     {
+                //         var pilotID = simGame.Constants.Story.StartingMechWarriors[UnityEngine.Random.Range(0, 3)];
+                //
+                //         //foreach (var pilotID in ModSettings.StartingRonin)
+                //         //{
+                //         if (!simGame.DataManager.PilotDefs.Exists(pilotID))
+                //         {
+                //             LogDebug($"\tMISSING StartingRonin {pilotID}!");
+                //             continue;
+                //         }
+                //
+                //         var pilotDef = simGame.DataManager.PilotDefs.Get(pilotID);
+                //         try
+                //         {
+                //             // had to log out values to figure out what these presets were called for the stock ronin
+                //             var portraitString = string.Join("", new[] {"PortraitPreset_", pilotID.Split('_')[3]});
+                //             pilotDef.PortraitSettings = simGame.DataManager.PortraitSettings.Get(portraitString);
+                //         }
+                //         catch (Exception ex)
+                //         {
+                //             Error(ex);
+                //         }
+                //
+                //         simGame.AddPilotToRoster(pilotDef, true);
+                //         LogDebug($"\tAdding StartingRonin {pilotDef.Description.Id}");
+                //     }
+                // }
+                //
+                // // random ronin
+                // if (ModSettings.NumberRandomRonin > 0)
+                // {
+                //     // make sure to remove the starting ronin list from the possible random pilots! yay linq
+                //     var randomRonin = GetRandomSubList(
+                //         simGame.RoninPilots.Where(x => !ModSettings.StartingRonin.Contains(x.Description.Id)).ToList(),
+                //         ModSettings.NumberRandomRonin);
+                //     foreach (var pilotDef in randomRonin)
+                //     {
+                //         simGame.AddPilotToRoster(pilotDef, true);
+                //         LogDebug($"\tAdding random Ronin {pilotDef.Description.Id}");
+                //     }
+                // }
+                //
+                // // random procedural pilots
+                // if (ModSettings.NumberProceduralPilots > 0)
+                // {
+                //     LogDebug($"NumberProceduralPilots {ModSettings.NumberProceduralPilots}");
+                //     var randomProcedural = simGame.PilotGenerator.GeneratePilots(ModSettings.NumberProceduralPilots, 0, 0, out _);
+                //     foreach (var pilotDef in randomProcedural)
+                //     {
+                //         simGame.AddPilotToRoster(pilotDef, true);
+                //         LogDebug($"\tAdding random procedural pilot {pilotDef.Description.Id}");
+                //     }
+                // }
+
                 while (__instance.PilotRoster.Count > 0)
                 {
                     __instance.PilotRoster.RemoveAt(0);
                 }
 
-                var pilotDefs = new List<PilotDef>();
+                List<PilotDef> list = new List<PilotDef>();
 
-                if (ModSettings.StartingRonin != null)
+                if (ModSettings.StartingRonin != null && ModSettings.NumberRoninFromList > 0)
                 {
-                    SetStartingRonin(__instance);
+                    var RoninRandomizer = new List<string>();
+                    RoninRandomizer.AddRange(GetRandomSubList(ModSettings.StartingRonin, ModSettings.NumberRoninFromList));
+                    foreach (var roninID in RoninRandomizer)
+                    {
+                        var pilotDef = __instance.DataManager.PilotDefs.Get(roninID);
+                        LogDebug("Adding starter ronin " + pilotDef.Description.Callsign);
+                        // add directly to roster, don't want to get duplicate ronin from random ronin
+                        if (pilotDef != null)
+                        {
+                            // had to log out values to figure out what these presets were called for the stock ronin
+                            var portraitString = string.Join("", new[] {"PortraitPreset_", roninID.Split('_')[3]});
+                            pilotDef.PortraitSettings = simGame.DataManager.PortraitSettings.Get(portraitString);
+                            __instance.AddPilotToRoster(pilotDef, true, true);
+                        }
+                    }
                 }
 
+                LogDebug($"NumberRandomRonin {ModSettings.NumberRandomRonin}");
                 if (ModSettings.NumberRandomRonin > 0)
                 {
-                    CreateRonin(__instance, pilotDefs);
+                    List<PilotDef> list2 = new List<PilotDef>(__instance.RoninPilots);
+                    for (int m = list2.Count - 1; m >= 0; m--)
+                    {
+                        for (int n = 0; n < __instance.PilotRoster.Count; n++)
+                        {
+                            if (list2[m].Description.Id == __instance.PilotRoster[n].Description.Id)
+                            {
+                                list2.RemoveAt(m);
+                                break;
+                            }
+                        }
+                    }
+
+                    list2.RNGShuffle<PilotDef>();
+                    for (int i = 0; i < ModSettings.NumberRandomRonin; i++)
+                    {
+                        list.Add(list2[i]);
+                    }
                 }
 
+                LogDebug($"NumberProceduralPilots {ModSettings.NumberProceduralPilots}");
                 if (ModSettings.NumberProceduralPilots > 0)
                 {
-                    CreateProceduralPilots(__instance, pilotDefs);
+                    List<PilotDef> list3;
+                    List<PilotDef> collection = __instance.PilotGenerator.GeneratePilots(ModSettings.NumberProceduralPilots, 1, 0f, out list3);
+                    list.AddRange(collection);
                 }
 
-                foreach (var pilotDef in pilotDefs)
+                foreach (PilotDef def in list)
                 {
-                    __instance.AddPilotToRoster(pilotDef, true, true);
+                    __instance.AddPilotToRoster(def, true, true);
                 }
             }
 
@@ -160,7 +280,9 @@ namespace RandomCampaignStart
             }
 
             bool firstrun = true;
-            for (int xloop = 0; xloop < ModSettings.Loops; xloop++)
+            for (int xloop = 0;
+                xloop < ModSettings.Loops;
+                xloop++)
             {
                 var LanceCounter = 1;
                 float currentLanceWeight;
@@ -259,8 +381,8 @@ namespace RandomCampaignStart
             LogDebug("Full random mode");
             lance.Clear();
             var lanceWeight = 0;
-            var mechDefs = __instance.DataManager.MechDefs.Select(kvp => kvp.Value).ToList();
 
+            var mechDefs = __instance.DataManager.MechDefs.Select(kvp => kvp.Value).ToList();
             if (ModSettings.RemoveAncestralMech)
             {
                 __instance.ActiveMechs.Remove(0);
@@ -271,11 +393,13 @@ namespace RandomCampaignStart
                     ModSettings.MinimumLanceSize++;
                 }
             }
+
             else if (ModSettings.IgnoreAncestralMech)
             {
                 lance.Add(AncestralMechDef);
                 ModSettings.MaximumLanceSize++;
             }
+
             else
             {
                 lance.Add(AncestralMechDef);
@@ -293,7 +417,7 @@ namespace RandomCampaignStart
                 {
                     matchingMechs =
                         matchingMechs.Where(mech => mech.MinAppearanceDate <=
-                                    UnityGameInstance.BattleTechGame.Simulation.CampaignStartDate);
+                                                    UnityGameInstance.BattleTechGame.Simulation.CampaignStartDate);
                 }
 
                 var mechDefString = matchingMechs.ElementAt(
@@ -363,8 +487,11 @@ namespace RandomCampaignStart
             }
 
             LogDebug("[COMPLETE: ADDING MECHS]");
+
             var sb = new StringBuilder();
-            for (var x = 0; x < lance.Count; x++)
+            for (var x = 0;
+                x < lance.Count;
+                x++)
             {
                 sb.AppendLine($"{lance[x].Chassis.VariantName} {lance[x].Name} ({((DateTime) lance[x].MinAppearanceDate).Year}) {lance[x].Chassis.Tonnage}T ({lance[x].Chassis.weightClass})");
                 LogDebug($"Mech {x + 1} is {lance[x].Name,-15} {lance[x].Chassis.VariantName,-10} {((DateTime) lance[x].MinAppearanceDate).Year,5} ({lance[x].Chassis.weightClass} {lance[x].Chassis.Tonnage}T)");
@@ -373,7 +500,6 @@ namespace RandomCampaignStart
 
             var tonnage = lance.GroupBy(x => x).Select(mech => mech.Key.Chassis.Tonnage).Sum();
             LogDebug($"Tonnage: {tonnage}");
-
             if (ModSettings.Reroll)
             {
                 GenericPopupBuilder
@@ -383,6 +509,7 @@ namespace RandomCampaignStart
                     .CancelOnEscape()
                     .Render();
             }
+
             else
             {
                 GenericPopupBuilder
@@ -390,53 +517,6 @@ namespace RandomCampaignStart
                     .AddButton("Proceed")
                     .CancelOnEscape()
                     .Render();
-            }
-        }
-
-        private static void CreateProceduralPilots(SimGameState __instance, List<PilotDef> pilotDefs)
-        {
-            // ReSharper disable once NotAccessedVariable
-            List<PilotDef> proceduralPilots;
-
-            var collection = __instance.PilotGenerator.GeneratePilots(
-                ModSettings.NumberProceduralPilots, 1, 0f, out proceduralPilots);
-
-            pilotDefs.AddRange(collection);
-        }
-
-        private static void CreateRonin(SimGameState __instance, List<PilotDef> pilotDefs)
-        {
-            var roninPilotDefs = new List<PilotDef>(__instance.RoninPilots);
-            for (var m = roninPilotDefs.Count - 1; m >= 0; m--)
-            {
-                for (var n = 0; n < __instance.PilotRoster.Count; n++)
-                {
-                    if (roninPilotDefs[m].Description.Id != __instance.PilotRoster[n].Description.Id) continue;
-                    roninPilotDefs.RemoveAt(m);
-                    break;
-                }
-            }
-
-            roninPilotDefs.RNGShuffle();
-            for (var i = 0;
-                i < ModSettings.NumberRandomRonin;
-                i++)
-            {
-                pilotDefs.Add(roninPilotDefs[i]);
-            }
-        }
-
-        private static void SetStartingRonin(SimGameState __instance)
-        {
-            var RoninRandomizer = new List<string>();
-            RoninRandomizer.AddRange(GetRandomSubList(ModSettings.StartingRonin, ModSettings.NumberRoninFromList));
-            foreach (var roninID in RoninRandomizer)
-            {
-                var pilotDef = __instance.DataManager.PilotDefs.Get(roninID);
-
-                // add directly to roster, don't want to get duplicate ronin from random ronin
-                if (pilotDef != null)
-                    __instance.AddPilotToRoster(pilotDef, true, true);
             }
         }
     }
