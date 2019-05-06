@@ -170,10 +170,7 @@ namespace RandomCampaignStart
             }
 
             LogDebug($"[START LANCE CREATION {ModSettings.MinimumStartingWeight}-{ModSettings.MaximumStartingWeight} TONS]");
-            // mechs
-            if (!ModSettings.UseRandomMechs) return;
             var AncestralMechDef = new MechDef(__instance.DataManager.MechDefs.Get(__instance.ActiveMechs[0].Description.Id), __instance.GenerateSimGameUID());
-            var RemoveAncestralMech = ModSettings.RemoveAncestralMech || AncestralMechDef.Description.Id == "mechdef_centurion_TARGETDUMMY";
             FullRandom(__instance, AncestralMechDef);
         }
 
@@ -309,29 +306,16 @@ namespace RandomCampaignStart
 
     internal class Settings
     {
-        public List<string> AssaultMechsPossible = new List<string>();
-        public List<string> HeavyMechsPossible = new List<string>();
-        public List<string> LightMechsPossible = new List<string>();
-        public List<string> MediumMechsPossible = new List<string>();
-
-        public int NumberAssaultMechs = 0;
-        public int NumberHeavyMechs = 0;
-        public int NumberLightMechs = 3;
-        public int NumberMediumMechs = 1;
-
+        public List<string> StartingRonin = new List<string>();
+        public List<string> ExcludedMechs = new List<string>();
         public float MinimumStartingWeight = 165;
         public float MaximumStartingWeight = 175;
         public float MaximumMechWeight = 50;
         public int MinimumLanceSize = 4;
         public int MaximumLanceSize = 6;
-        public bool AllowCustomMechs = false;
-        public bool FullRandomMode = true;
         public bool AllowDuplicateChassis = false;
-        public float MechPercentageStartingCost = 0.2f;
 
-        public List<string> StartingRonin = new List<string>();
         public int NumberRoninFromList = 4;
-        public List<string> ExcludedMechs = new List<string>();
 
         public int NumberProceduralPilots = 0;
         public int NumberRandomRonin = 4;
@@ -341,10 +325,7 @@ namespace RandomCampaignStart
 
         public string ModDirectory = string.Empty;
         public bool Debug = false;
-        public int SpiderLoops = 1000;
-        public int Loops = 1;
 
-        public bool UseRandomMechs = true;
         public bool MechsAdhereToTimeline = true;
         public int StartYear = -1;
         public bool Reroll = true;
