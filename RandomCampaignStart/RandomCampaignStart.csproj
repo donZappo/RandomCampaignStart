@@ -44,6 +44,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="LanceEqualityComparer.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Patches.cs" />
     <Compile Include="RandomCampaignStart.cs" />

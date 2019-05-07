@@ -1,7 +1,7 @@
 {
 	"Name": "FullRandomCampaignStart",
 	"DLL": "RandomCampaignStart.dll",
-	"Version": "1.24",
+	"Version": "1.25",
 	"Description": "Randomizes the starting mechwarriors and mechs.",
 	"Author": "mpstark, modified by gnivler and don Zappo",
 	"Website": "www.github.com/mpstark/RandomCampaignStart",
@@ -27,7 +27,6 @@
 			"pilot_sim_starter_dekker",
 			"pilot_sim_starter_glitch"
 		],
-		/****************************************************************************************************************
         /* Settings for Full Random Mode. Maximum Lance Size = 6.*/
 		"MinimumLanceSize": 5,
 		"MaximumLanceSize": 6,

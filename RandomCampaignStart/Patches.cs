@@ -66,98 +66,84 @@ namespace RandomCampaignStart
     [HarmonyPatch(typeof(SimGameState), "FirstTimeInitializeDataFromDefs")]
     public static class SimGameState_FirstTimeInitializeDataFromDefs_Patch
     {
-        private static MechDef AncestralMechDef;
-        private static SimGameState Sim;
+        private static SimGameState Sim = UnityGameInstance.BattleTechGame.Simulation;
+        private static MechDef AncestralMechDef = new MechDef(Sim.DataManager.MechDefs.Get(Sim.ActiveMechs[0].Description.Id), Sim.GenerateSimGameUID());
+        private static Dictionary<int, MechDef> OriginalLance = new Dictionary<int, MechDef>(Sim.ActiveMechs);
 
         public static void Postfix(SimGameState __instance)
         {
             LogDebug($"[START PILOT CREATION]");
-            GeneratePilots(__instance);
+            GeneratePilots();
             LogDebug($"[START LANCE CREATION {ModSettings.MinimumStartingWeight}-{ModSettings.MaximumStartingWeight} TONS, " +
                      $"{ModSettings.MinimumLanceSize}-{ModSettings.MaximumLanceSize} MECHS]");
-            AncestralMechDef = new MechDef(__instance.DataManager.MechDefs.Get(__instance.ActiveMechs[0].Description.Id), __instance.GenerateSimGameUID());
-            Sim = __instance;
             CreateLance();
         }
 
-        private static void GeneratePilots(SimGameState __instance)
+        // thanks to mpstark
+        public static void GeneratePilots()
         {
             if (ModSettings.StartingRonin.Count + ModSettings.NumberRandomRonin + ModSettings.NumberProceduralPilots > 0)
             {
-                while (__instance.PilotRoster.Count > 0)
-                {
-                    __instance.PilotRoster.RemoveAt(0);
-                }
+                // clear roster
+                while (Sim.PilotRoster.Count > 0)
+                    Sim.PilotRoster.RemoveAt(0);
 
-                List<PilotDef> list = new List<PilotDef>();
-
-                if (ModSettings.StartingRonin != null && ModSettings.NumberRoninFromList > 0)
-                {
-                    var RoninRandomizer = new List<string>();
-                    RoninRandomizer.AddRange(GetRandomSubList(ModSettings.StartingRonin, ModSettings.NumberRoninFromList));
-                    foreach (var roninID in RoninRandomizer)
+                // starting ronin
+                if (ModSettings.StartingRonin != null && ModSettings.StartingRonin.Count > 0)
+                    for (var i = 0; i < ModSettings.NumberRoninFromList; i++)
                     {
-                        var pilotDef = __instance.DataManager.PilotDefs.Get(roninID);
-                        LogDebug($"[ADDING RONIN {pilotDef.Description.Callsign}]");
-                        // add directly to roster, don't want to get duplicate ronin from random ronin
-                        if (pilotDef != null)
+                        var pilotID = ModSettings.StartingRonin[UnityEngine.Random.Range(0, ModSettings.StartingRonin.Count)];
+                        if (!Sim.DataManager.PilotDefs.Exists(pilotID))
                         {
-                            // convert pilot_sim_starter_medusa to PortraitPreset_medusa
-                            // had to log out values to figure out what these presets were called
-                            var portraitString = string.Join("", new[] {"PortraitPreset_", roninID.Split('_')[3]});
-                            pilotDef.PortraitSettings = __instance.DataManager.PortraitSettings.Get(portraitString);
-                            __instance.AddPilotToRoster(pilotDef, true, true);
+                            LogDebug($"pilotID not found: {pilotID}");
+                            continue;
                         }
-                    }
-                }
 
-                LogDebug($"NumberRandomRonin {ModSettings.NumberRandomRonin}");
+                        var pilotDef = Sim.DataManager.PilotDefs.Get(pilotID);
+                        // change pilot_sim_starter_medusa into PortraitPreset_medusa
+                        var portraitString = string.Join("", new[] {"PortraitPreset_", pilotID.Split('_')[3]});
+                        pilotDef.PortraitSettings = Sim.DataManager.PortraitSettings.Get(portraitString);
+                        LogDebug($"[ADD STARTER {pilotDef.Description.Callsign}]");
+                        Sim.AddPilotToRoster(pilotDef, true);
+                    }
+
+                // random ronin
                 if (ModSettings.NumberRandomRonin > 0)
                 {
-                    List<PilotDef> list2 = new List<PilotDef>(__instance.RoninPilots);
-                    for (int m = list2.Count - 1; m >= 0; m--)
+                    // make sure to remove the starting ronin list from the possible random pilots! yay linq
+                    var randomRonin =
+                        GetRandomSubList(
+                            Sim.RoninPilots.Where(x => !ModSettings.StartingRonin.Contains(x.Description.Id)).ToList(),
+                            ModSettings.NumberRandomRonin);
+                    foreach (var pilotDef in randomRonin)
                     {
-                        for (int n = 0; n < __instance.PilotRoster.Count; n++)
-                        {
-                            if (list2[m].Description.Id == __instance.PilotRoster[n].Description.Id)
-                            {
-                                list2.RemoveAt(m);
-                                break;
-                            }
-                        }
-                    }
-
-                    list2.RNGShuffle<PilotDef>();
-                    for (int i = 0; i < ModSettings.NumberRandomRonin; i++)
-                    {
-                        list.Add(list2[i]);
+                        LogDebug($"[ADD RONIN {pilotDef.Description.Callsign}]");
+                        Sim.AddPilotToRoster(pilotDef, true);
                     }
                 }
 
-                LogDebug($"NumberProceduralPilots {ModSettings.NumberProceduralPilots}");
+                // random procedural pilots
                 if (ModSettings.NumberProceduralPilots > 0)
                 {
-                    List<PilotDef> list3;
-                    List<PilotDef> collection = __instance.PilotGenerator.GeneratePilots(ModSettings.NumberProceduralPilots, 1, 0f, out list3);
-                    list.AddRange(collection);
-                }
-
-                foreach (PilotDef def in list)
-                {
-                    __instance.AddPilotToRoster(def, true, true);
+                    var randomProcedural = Sim.PilotGenerator.GeneratePilots(ModSettings.NumberProceduralPilots,
+                        0, 0, out _);
+                    foreach (var pilotDef in randomProcedural)
+                    {
+                        LogDebug($"[ADD PILOT {pilotDef.Description.Callsign}]");
+                        Sim.AddPilotToRoster(pilotDef, true);
+                    }
                 }
             }
         }
 
         private static void CreateLance()
         {
-            var originalLance = Sim.ActiveMechs;
             var lance = new List<MechDef>();
             var lanceWeight = 0;
             var mechDefs = Sim.DataManager.MechDefs.Select(kvp => kvp.Value).ToList();
 
             var mechQuery = mechDefs
-                .Except(lance)
+                .Except(lance, new LanceEqualityComparer())
                 .Where(mech => mech.Chassis.Tonnage <= ModSettings.MaximumMechWeight &&
                                mech.Chassis.Tonnage + lanceWeight <= ModSettings.MaximumStartingWeight &&
                                !mech.MechTags.Contains("BLACKLISTED") &&
@@ -180,11 +166,29 @@ namespace RandomCampaignStart
                    lanceWeight < ModSettings.MinimumStartingWeight)
             {
                 LogDebug($"[MECHS IN LIST {mechQuery.Count()}]");
+                // average weight of the mechs which fit
+                var avgWeight = mechQuery.Select(mech => mech.Chassis.Tonnage).Sum() / mechQuery.Count();
+                var weightDeficit = ModSettings.MinimumStartingWeight - lance.Select(mech => mech.Chassis.Tonnage).Sum();
+                var mostMechs = ModSettings.MaximumLanceSize - lance.Count;
+                LogDebug($"Average weight {avgWeight}, weightDeficit {weightDeficit} and can fit {mostMechs} mechs");
+
                 // this is the sanity clamp... anything unsolvable gets ignored
-                if (mechQuery.Count() < ModSettings.MinimumLanceSize - lance.Count)
+                if (mechQuery.Count() == 0 ||
+                    mostMechs == 1 && weightDeficit > avgWeight ||
+                    mechQuery.Count() < ModSettings.MinimumLanceSize - lance.Count)
                 {
                     LogDebug("[INSUFFICIENT MECHS - DEFAULT LANCE CREATION]");
-                    Sim.ActiveMechs = originalLance;
+                    for (var x = 0; x < OriginalLance.Count; x++)
+                    {
+                        Sim.AddMech(x, OriginalLance[x], true, true, false);
+                    }
+
+                    // TODO re-rolling can apparently screw up the Sim.PilotRoster...?? loss of starter ronin
+                    GenericPopupBuilder.Create(GenericPopupType.Info,
+                            "Random lance creation failed due to constraints.  Default lance created.")
+                        .AddButton("PROCEED")
+                        .AddButton("RE-ROLL", delegate { Reroll(); }).Render();
+
                     return;
                 }
 
@@ -205,6 +209,7 @@ namespace RandomCampaignStart
                 }
                 else
                 {
+                    LogDebug(">> didn't fit");
                     // it didn't fit but it's also the only option, so restart
                     if (mechQuery.Count() <= 1)
                     {
@@ -212,6 +217,7 @@ namespace RandomCampaignStart
                         lance.Clear();
                         HandleAncestral(lance, ref lanceWeight);
                         lanceWeight = 0;
+                        continue;
                     }
                 }
 
@@ -229,6 +235,11 @@ namespace RandomCampaignStart
             }
 
             LogDebug("[COMPLETE: ADDING MECHS]");
+            foreach (var pilot in Sim.PilotRoster)
+            {
+                LogDebug($"Pilot {pilot.Callsign}");
+            }
+
             var sb = new StringBuilder();
             for (var x = 0; x < lance.Count; x++)
             {
@@ -258,36 +269,36 @@ namespace RandomCampaignStart
             }
         }
 
+        private static void Reroll()
+        {
+            LogDebug("[RE-ROLL]");
+            foreach (var pilot in Sim.PilotRoster)
+            {
+                LogDebug($"Pilot {pilot.Callsign}");
+            }
+
+            CreateLance();
+        }
+
         private static void HandleAncestral(List<MechDef> lance, ref int lanceWeight)
         {
             if (ModSettings.RemoveAncestralMech)
             {
-                RemoveAncestralMech(Sim, AncestralMechDef);
+                RemoveAncestralMech();
             }
             else if (ModSettings.IgnoreAncestralMech)
             {
-                IgnoreAncestralMech(AncestralMechDef, lance);
+                IgnoreAncestralMech(lance);
             }
             else
             {
-                AddAncestral(lance, ref lanceWeight);
+                LogDebug($"[ADD ANCESTRAL {AncestralMechDef.Name}]");
+                lance.Add(AncestralMechDef);
+                lanceWeight += (int) AncestralMechDef.Chassis.Tonnage;
             }
         }
 
-        private static void AddAncestral(List<MechDef> lance, ref int lanceWeight)
-        {
-            LogDebug($"[ADD ANCESTRAL {AncestralMechDef.Name}]");
-            lance.Add(AncestralMechDef);
-            lanceWeight += (int) AncestralMechDef.Chassis.Tonnage;
-        }
-
-        private static void Reroll()
-        {
-            LogDebug("[RE-ROLL]");
-            CreateLance();
-        }
-
-        private static void IgnoreAncestralMech(MechDef AncestralMechDef, List<MechDef> lance)
+        private static void IgnoreAncestralMech(List<MechDef> lance)
         {
             lance.Add(AncestralMechDef);
             ModSettings.MaximumLanceSize = ModSettings.MaximumLanceSize == 6
@@ -295,9 +306,9 @@ namespace RandomCampaignStart
                 : ModSettings.MaximumLanceSize + 1;
         }
 
-        private static void RemoveAncestralMech(SimGameState __instance, MechDef AncestralMechDef)
+        private static void RemoveAncestralMech()
         {
-            __instance.ActiveMechs.Remove(0);
+            Sim.ActiveMechs.Remove(0);
             if (AncestralMechDef.Description.Id == "mechdef_centurion_TARGETDUMMY" &&
                 ModSettings.IgnoreAncestralMech)
             {

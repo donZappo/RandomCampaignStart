@@ -1,15 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using BattleTech;
-using BattleTech.UI;
 using Harmony;
 using Newtonsoft.Json;
 using static RandomCampaignStart.Logger;
-using static RandomCampaignStart.RandomCampaignStart;
 
 // ReSharper disable CollectionNeverUpdated.Global
 // ReSharper disable FieldCanBeMadeReadOnly.Global
