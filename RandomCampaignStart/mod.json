@@ -1,58 +1,56 @@
 {
-  "Name": "FullRandomCampaignStart",
-  "DLL": "RandomCampaignStart.dll",
-
-  "Version": "1.24",
-  "Description": "Randomizes the starting mechwarriors and mechs.",
-  "Author": "mpstark, modified by gnivler and don Zappo",
-  "Website": "www.github.com/mpstark/RandomCampaignStart",
-
-  "ConflictsWith": [ "RandomCampaignStart" ],
-
-  "Settings": {
-    "MinimumStartingWeight": 160,
-    "MaximumStartingWeight": 170,
-    "NumberRandomRonin": 0,
-    "NumberProceduralPilots": 3,
-	"MechPercentageStartingCost" : 0,
-	"RemoveAncestralMech": false,
-
-	/* Specify which Ronin you want to have in your game to start. NumberRoninFromList will specify how many Ronin will be randomly selected from amongst this list. */
-	"NumberRoninFromList" : 1,
-    "StartingRonin": [
-	  "pilot_sim_starter_medusa",
-	  "pilot_sim_starter_behemoth",
-	  "pilot_sim_starter_dekker",
-	  "pilot_sim_starter_glitch",
+	"Name": "FullRandomCampaignStart",
+	"DLL": "RandomCampaignStart.dll",
+	"Version": "1.24",
+	"Description": "Randomizes the starting mechwarriors and mechs.",
+	"Author": "mpstark, modified by gnivler and don Zappo",
+	"Website": "www.github.com/mpstark/RandomCampaignStart",
+	"ConflictsWith": [
+		"RandomCampaignStart"
 	],
-
-	/****************************************************************************************************************
-    /* Settings for Full Random Mode. Maximum Lance Size = 6.*/
-    "MinimumLanceSize": 5,
-    "MaximumLanceSize": 6,
-    "MaximumMechWeight": 45,
-	"AllowDuplicateChassis":  false,
-	"AllowCustomMechs": false,
-	
-	/* This setting ignores the AncestralMech completely (for tonnage and lance slot)! Make sure to adjust your max/min Lance Size to take this into account. */
-	"IgnoreAncestralMech": false,
-	
-	/* Use mechdef name for this list. For example, "mechdef_locust_LCT-1M" to exclude the Locust-1M. */
-	"ExcludedMechs" : [
-	  "mechdef_atlas_AS7-D_Danielle",
-	  "mechdef_atlas_AS7-WGS_Samsonov",
-	  "mechdef_catapult_CPLT-C1_Jenny",
-	  "mechdef_dragon_DRG-1G_Douglas",
-	  "mechdef_dragon_DRG-2Y_Yorioshi",
-	  "mechdef_panther_PNT-9R_Tanaka",
-	  "mechdef_stalker_STK-3F_Jagawen",
-	  "mechdef_thunderbolt_TDR-5S-T_Tallman",
-	  "mechdef_victor_VTR-9B_Li",
-	  "mechdef_vindicator_VND-1R_Vong",
-	  "mechdef_griffin_GRF-2N"
-	],
-	
-	/* Dev toggles */
-	"Debug": false,
-  }
+	"Settings": {
+		"MinimumStartingWeight": 160,
+		"MaximumStartingWeight": 170,
+		"NumberRandomRonin": 0,
+		"NumberProceduralPilots": 3,
+		"MechPercentageStartingCost": 0,
+		"RemoveAncestralMech": false,
+		"MechsAdhereToTimeline": true,
+		"StartYear": -1,
+		"Reroll": true,
+		
+		/* Specify which Ronin you want to have in your game to start. NumberRoninFromList will specify how many Ronin will be randomly selected from amongst this list. */
+		"NumberRoninFromList": 1,
+		"StartingRonin": [
+			"pilot_sim_starter_medusa",
+			"pilot_sim_starter_behemoth",
+			"pilot_sim_starter_dekker",
+			"pilot_sim_starter_glitch"
+		],
+		/****************************************************************************************************************
+        /* Settings for Full Random Mode. Maximum Lance Size = 6.*/
+		"MinimumLanceSize": 5,
+		"MaximumLanceSize": 6,
+		"MaximumMechWeight": 45,
+		"AllowDuplicateChassis": false,
+		"AllowCustomMechs": false,
+		/* This setting ignores the AncestralMech completely (for tonnage and lance slot)! Make sure to adjust your max/min Lance Size to take this into account. */
+		"IgnoreAncestralMech": false,
+		/* Use mechdef name for this list. For example, "mechdef_locust_LCT-1M" to exclude the Locust-1M. */
+		"ExcludedMechs": [
+			"mechdef_atlas_AS7-D_Danielle",
+			"mechdef_atlas_AS7-WGS_Samsonov",
+			"mechdef_catapult_CPLT-C1_Jenny",
+			"mechdef_dragon_DRG-1G_Douglas",
+			"mechdef_dragon_DRG-2Y_Yorioshi",
+			"mechdef_panther_PNT-9R_Tanaka",
+			"mechdef_stalker_STK-3F_Jagawen",
+			"mechdef_thunderbolt_TDR-5S-T_Tallman",
+			"mechdef_victor_VTR-9B_Li",
+			"mechdef_vindicator_VND-1R_Vong",
+			"mechdef_griffin_GRF-2N"
+		],
+		/* Dev toggles */
+		"Debug": false
+	}
 }
