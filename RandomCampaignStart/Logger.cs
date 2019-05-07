@@ -6,8 +6,8 @@ namespace RandomCampaignStart
 {
     public static class Logger
     {
-        private static string LogFilePath => 
-            Directory.GetParent(Assembly.GetExecutingAssembly().Location).FullName + 
+        private static string LogFilePath =>
+            Directory.GetParent(Assembly.GetExecutingAssembly().Location).FullName +
             "\\RandomCampaignStart.log.txt";
 
         public static void Error(Exception ex)

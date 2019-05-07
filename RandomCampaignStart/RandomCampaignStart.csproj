@@ -45,7 +45,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Logger.cs" />
-    <Compile Include="MechVariantComparer.cs" />
+    <Compile Include="Patches.cs" />
     <Compile Include="RandomCampaignStart.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -57,7 +57,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>
-      copy /y $(TargetPath) D:\SteamLibrary\steamapps\common\BATTLETECH\mods\RandomCampaignStart
+      copy /y $(TargetPath) N:\SteamLibrary\steamapps\common\BATTLETECH\Mods\RandomCampaignStart
     </PostBuildEvent>
   </PropertyGroup>
 </Project>
