@@ -6,7 +6,6 @@ using BattleTech;
 using BattleTech.UI;
 using Harmony;
 using HBS;
-using Steamworks;
 using static RandomCampaignStart.Logger;
 using static RandomCampaignStart.RandomCampaignStart;
 
@@ -79,12 +78,19 @@ namespace RandomCampaignStart
         public static void Postfix(SimGameState __instance)
         {
             LogDebug($"[START PILOT CREATION]");
-            GeneratePilots();
+            PatchMethods.GeneratePilots();
             OriginalPilots = Sim.PilotRoster;
             LogDebug($"[START LANCE CREATION {ModSettings.MinimumStartingWeight}-{ModSettings.MaximumStartingWeight} TONS, " +
                      $"{ModSettings.MinimumLanceSize}-{ModSettings.MaximumLanceSize} MECHS]");
-            PatchMethods.CreateLance();
+            PatchMethods.CreateRandomLance();
         }
+    }
+
+    public class PatchMethods
+    {
+        private static SimGameState Sim = UnityGameInstance.BattleTechGame.Simulation;
+        private static Dictionary<int, MechDef> OriginalLance = new Dictionary<int, MechDef>(Sim.ActiveMechs);
+        private static MechDef AncestralMechDef = new MechDef(Sim.DataManager.MechDefs.Get(Sim.ActiveMechs[0].Description.Id), Sim.GenerateSimGameUID());
 
         // thanks to mpstark
         public static void GeneratePilots()
@@ -142,16 +148,8 @@ namespace RandomCampaignStart
                 }
             }
         }
-    }
 
-    public class PatchMethods
-    {
-        private static SimGameState Sim = UnityGameInstance.BattleTechGame.Simulation;
-        private static Dictionary<int, MechDef> OriginalLance = new Dictionary<int, MechDef>(Sim.ActiveMechs);
-        private static MechDef AncestralMechDef = new MechDef(Sim.DataManager.MechDefs.Get(Sim.ActiveMechs[0].Description.Id), Sim.GenerateSimGameUID());
-
-        internal static void CreateLance()
-
+        internal static void CreateRandomLance()
         {
             var lance = new List<MechDef>();
             var lanceWeight = 0;
@@ -304,7 +302,7 @@ namespace RandomCampaignStart
         private static void Reroll()
         {
             LogDebug("[RE-ROLL]");
-            CreateLance();
+            CreateRandomLance();
         }
 
         private static void HandleAncestral(List<MechDef> lance, ref int lanceWeight)
