@@ -1,7 +1,7 @@
 {
 	"Name": "FullRandomCampaignStart",
 	"DLL": "RandomCampaignStart.dll",
-	"Version": "1.25",
+	"Version": "1.26",
 	"Description": "Randomizes the starting mechwarriors and mechs.",
 	"Author": "mpstark, modified by gnivler and don Zappo",
 	"Website": "www.github.com/mpstark/RandomCampaignStart",

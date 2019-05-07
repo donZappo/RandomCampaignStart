@@ -5,6 +5,8 @@ using System.Text;
 using BattleTech;
 using BattleTech.UI;
 using Harmony;
+using HBS;
+using Steamworks;
 using static RandomCampaignStart.Logger;
 using static RandomCampaignStart.RandomCampaignStart;
 
@@ -12,6 +14,7 @@ using static RandomCampaignStart.RandomCampaignStart;
 
 namespace RandomCampaignStart
 {
+    // implements MinAppearanceDate
     [HarmonyPatch(typeof(MechDef), "CopyFrom")]
     public class CopyPatch
     {
@@ -22,6 +25,7 @@ namespace RandomCampaignStart
         }
     }
 
+    // charges for starting mechs, optionally
     [HarmonyPatch(typeof(SimGameState), "_OnDefsLoadComplete")]
     public static class Initialize_New_Game
     {
@@ -38,6 +42,7 @@ namespace RandomCampaignStart
         }
     }
 
+    // sets start year and start year tag
     [HarmonyPatch(typeof(SimGameState), "_OnFirstPlayInit")]
     public class SimGameState_OnFirstPlayInitPatch
     {
@@ -63,20 +68,22 @@ namespace RandomCampaignStart
         }
     }
 
+    // does far too much
     [HarmonyPatch(typeof(SimGameState), "FirstTimeInitializeDataFromDefs")]
     public static class SimGameState_FirstTimeInitializeDataFromDefs_Patch
     {
         private static SimGameState Sim = UnityGameInstance.BattleTechGame.Simulation;
-        private static MechDef AncestralMechDef = new MechDef(Sim.DataManager.MechDefs.Get(Sim.ActiveMechs[0].Description.Id), Sim.GenerateSimGameUID());
         private static Dictionary<int, MechDef> OriginalLance = new Dictionary<int, MechDef>(Sim.ActiveMechs);
+        private static WeightedList<Pilot> OriginalPilots = new WeightedList<Pilot>(WeightedListType.Default);
 
         public static void Postfix(SimGameState __instance)
         {
             LogDebug($"[START PILOT CREATION]");
             GeneratePilots();
+            OriginalPilots = Sim.PilotRoster;
             LogDebug($"[START LANCE CREATION {ModSettings.MinimumStartingWeight}-{ModSettings.MaximumStartingWeight} TONS, " +
                      $"{ModSettings.MinimumLanceSize}-{ModSettings.MaximumLanceSize} MECHS]");
-            CreateLance();
+            PatchMethods.CreateLance();
         }
 
         // thanks to mpstark
@@ -135,19 +142,30 @@ namespace RandomCampaignStart
                 }
             }
         }
+    }
 
-        private static void CreateLance()
+    public class PatchMethods
+    {
+        private static SimGameState Sim = UnityGameInstance.BattleTechGame.Simulation;
+        private static Dictionary<int, MechDef> OriginalLance = new Dictionary<int, MechDef>(Sim.ActiveMechs);
+        private static MechDef AncestralMechDef = new MechDef(Sim.DataManager.MechDefs.Get(Sim.ActiveMechs[0].Description.Id), Sim.GenerateSimGameUID());
+
+        internal static void CreateLance()
+
         {
             var lance = new List<MechDef>();
             var lanceWeight = 0;
             var mechDefs = Sim.DataManager.MechDefs.Select(kvp => kvp.Value).ToList();
 
             var mechQuery = mechDefs
-                .Except(lance, new LanceEqualityComparer())
                 .Where(mech => mech.Chassis.Tonnage <= ModSettings.MaximumMechWeight &&
                                mech.Chassis.Tonnage + lanceWeight <= ModSettings.MaximumStartingWeight &&
                                !mech.MechTags.Contains("BLACKLISTED") &&
                                !ModSettings.ExcludedMechs.Contains(mech.Chassis.VariantName));
+            if (!ModSettings.AllowDuplicateChassis)
+            {
+                mechQuery = mechQuery.Except(lance, new LanceEqualityComparer());
+            }
 
             if (!ModSettings.AllowCustomMechs)
             {
@@ -177,21 +195,11 @@ namespace RandomCampaignStart
                     mostMechs == 1 && weightDeficit > avgWeight ||
                     mechQuery.Count() < ModSettings.MinimumLanceSize - lance.Count)
                 {
-                    LogDebug("[INSUFFICIENT MECHS - DEFAULT LANCE CREATION]");
-                    for (var x = 0; x < OriginalLance.Count; x++)
-                    {
-                        Sim.AddMech(x, OriginalLance[x], true, true, false);
-                    }
-
-                    // TODO re-rolling can apparently screw up the Sim.PilotRoster...?? loss of starter ronin
-                    GenericPopupBuilder.Create(GenericPopupType.Info,
-                            "Random lance creation failed due to constraints.  Default lance created.")
-                        .AddButton("PROCEED")
-                        .AddButton("RE-ROLL", delegate { Reroll(); }).Render();
-
+                    CreateDefaultLance();
                     return;
                 }
 
+                // generate a mech
                 var mechDefString = mechQuery
                     .ElementAt(UnityEngine.Random.Range(0, mechQuery.Count())).Description.Id
                     .Replace("chassisdef", "mechdef");
@@ -199,9 +207,7 @@ namespace RandomCampaignStart
                 LogDebug($"[GENERATED {mechDefString}]");
 
                 if (mechDef.Chassis.Tonnage + lanceWeight <= ModSettings.MaximumStartingWeight &&
-                    lance.Count < ModSettings.MaximumLanceSize &&
-                    ModSettings.AllowDuplicateChassis |
-                    !lance.Select(x => x.Name).Contains(mechDef.Name))
+                    lance.Count < ModSettings.MaximumLanceSize)
                 {
                     lance.Add(mechDef);
                     lanceWeight += (int) mechDef.Chassis.Tonnage;
@@ -209,7 +215,7 @@ namespace RandomCampaignStart
                 }
                 else
                 {
-                    LogDebug(">> didn't fit");
+                    LogDebug(">>>>> didn't fit");
                     // it didn't fit but it's also the only option, so restart
                     if (mechQuery.Count() <= 1)
                     {
@@ -254,6 +260,8 @@ namespace RandomCampaignStart
             {
                 GenericPopupBuilder
                     .Create("This is your starting lance (" + tonnage + "T)", sb.ToString())
+                    .AddFader(new UIColorRef?(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill), 0.0f, true)
+                    .IsNestedPopupWithBuiltInFader()
                     .AddButton("Proceed")
                     .AddButton("Re-roll", delegate { Reroll(); })
                     .CancelOnEscape()
@@ -262,21 +270,40 @@ namespace RandomCampaignStart
             else
             {
                 GenericPopupBuilder
-                    .Create("This is your starting lance " + tonnage + "T", sb.ToString())
+                    .Create("This is your starting lance (" + tonnage + "T)", sb.ToString())
+                    .AddFader(new UIColorRef?(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill), 0.0f, true)
+                    .IsNestedPopupWithBuiltInFader()
+                    .SetAlwaysOnTop()
                     .AddButton("Proceed")
                     .CancelOnEscape()
                     .Render();
             }
         }
 
+        private static void CreateDefaultLance()
+        {
+            LogDebug("[INSUFFICIENT MECHS - DEFAULT LANCE CREATION]");
+            Sim.ActiveMechs.Clear();
+            for (var i = 0; i < OriginalLance.Count; i++)
+            {
+                Sim.AddMech(i, OriginalLance[i], true, true, false);
+            }
+
+            GenericPopupBuilder
+                .Create(GenericPopupType.Warning, "Random lance creation failed due to constraints.\nDefault lance created.")
+                .AddFader(new UIColorRef?(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill), 0.0f, true)
+                .IsNestedPopupWithBuiltInFader()
+                .AddButton("PROCEED")
+                .AddButton("RE-ROLL", delegate { Reroll(); })
+                .CancelOnEscape()
+                .Render();
+
+            return;
+        }
+
         private static void Reroll()
         {
             LogDebug("[RE-ROLL]");
-            foreach (var pilot in Sim.PilotRoster)
-            {
-                LogDebug($"Pilot {pilot.Callsign}");
-            }
-
             CreateLance();
         }
 
