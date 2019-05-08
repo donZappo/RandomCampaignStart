@@ -77,18 +77,15 @@ namespace RandomCampaignStart
 
         public static void Postfix(SimGameState __instance)
         {
-            LogDebug($"[START PILOT CREATION]");
             PatchMethods.GeneratePilots();
             OriginalPilots = Sim.PilotRoster;
-            LogDebug($"[START LANCE CREATION {ModSettings.MinimumStartingWeight}-{ModSettings.MaximumStartingWeight} TONS, " +
-                     $"{ModSettings.MinimumLanceSize}-{ModSettings.MaximumLanceSize} MECHS]");
             PatchMethods.CreateRandomLance();
         }
     }
 
     //public static class Extensions
     //{
-    //    public static IEnumerable<MechDef> NotMyMechs(this IEnumerable<MechDef> sequence)
+    //    public static IEnumerable<MechDef> NoDuplicateVariants(this IEnumerable<MechDef> sequence)
     //    {
     //        return sequence.Where(mech => sequence.All(x => x.Name != mech.Name));
     //    }
@@ -103,6 +100,7 @@ namespace RandomCampaignStart
         // thanks to mpstark
         public static void GeneratePilots()
         {
+            LogDebug($"[START PILOT CREATION]");
             if (ModSettings.StartingRonin.Count + ModSettings.NumberRandomRonin + ModSettings.NumberProceduralPilots > 0)
             {
                 // clear roster
@@ -159,6 +157,8 @@ namespace RandomCampaignStart
 
         internal static void CreateRandomLance()
         {
+            LogDebug($"[START LANCE CREATION {ModSettings.MinimumStartingWeight}-{ModSettings.MaximumStartingWeight} TONS, " +
+                     $"{ModSettings.MinimumLanceSize}-{ModSettings.MaximumLanceSize} MECHS]");
             var lance = new List<MechDef>();
             var lanceWeight = 0;
             var mechDefs = Sim.DataManager.MechDefs.Select(kvp => kvp.Value).ToList();
@@ -177,6 +177,7 @@ namespace RandomCampaignStart
                 mechQuery = mechQuery.Where(mech => !mech.Name.ToUpper().Contains("CUSTOM"));
             }
 
+            // if this is TRUE but Z_JK_AppearanceDates isn't installed it will filter to zero
             if (ModSettings.MechsAdhereToTimeline)
             {
                 mechQuery = mechQuery
@@ -185,18 +186,22 @@ namespace RandomCampaignStart
 
             HandleAncestral(lance, ref lanceWeight);
 
-            LogDebug("MechDefs: " + mechQuery.Count());
             while (lance.Count < ModSettings.MinimumLanceSize ||
-                   lanceWeight <= ModSettings.MinimumStartingWeight)
+                   lanceWeight < ModSettings.MinimumStartingWeight)
             {
+                //LogDebug($"ModSettings.MinimumLanceSize {ModSettings.MinimumLanceSize}\nModSettings.MinimumStartingWeight {ModSettings.MinimumStartingWeight}");
+                LogDebug($"[NEW LOOP]\nMechs: {lance.Count} ({lanceWeight}T)\n" +
+                         $"lance.Count < ModSettings.MinimumLanceSize {lance.Count < ModSettings.MinimumLanceSize}\n" +
+                         $"lanceWeight <= ModSettings.MinimumStartingWeight {lanceWeight <= ModSettings.MinimumStartingWeight}");
                 LogDebug($"[AVAILABLE MECHS {mechQuery.Count()}]");
                 // average weight of the mechs which fit
                 var avgWeight = mechQuery.Select(mech => mech.Chassis.Tonnage).Sum() / mechQuery.Count();
                 var weightDeficit = ModSettings.MinimumStartingWeight - lance.Select(mech => mech.Chassis.Tonnage).Sum();
                 var mostMechs = ModSettings.MaximumLanceSize - lance.Count;
-                LogDebug($"Average weight {avgWeight} of available mechs, weightDeficit {weightDeficit} and can fit {mostMechs} mechs");
+                LogDebug($"Average weight {avgWeight} of available mechs, lance weightDeficit {weightDeficit} and can fit {mostMechs} more mech" + (mostMechs > 1 ? "s" : ""));
 
-                // this is the sanity clamp... anything unsolvable gets ignored
+                // this is the sanity clamp... anything unsolvable triggers a default lance creation
+                LogDebug($"Sanity check: mostMechs == 1 && weightDeficit > avgWeight {mostMechs == 1 && weightDeficit > avgWeight}\nmechQuery.Count() < ModSettings.MinimumLanceSize - lance.Count {mechQuery.Count() < ModSettings.MinimumLanceSize - lance.Count}");
                 if (mechQuery.Count() == 0 ||
                     mostMechs == 1 && weightDeficit > avgWeight ||
                     mechQuery.Count() < ModSettings.MinimumLanceSize - lance.Count)
@@ -233,16 +238,25 @@ namespace RandomCampaignStart
                     }
                 }
 
-                LogDebug($"[MECHS: {lance.Count} TONS: {lanceWeight}]");
+                LogDebug($"[MECH{(lance.Count > 1 ? "S" : "")}: {lance.Count} TONS: {lanceWeight}]");
                 if (lance.Count == ModSettings.MaximumLanceSize &&
                     lanceWeight < ModSettings.MinimumStartingWeight ||
                     lance.Count < ModSettings.MinimumLanceSize &&
-                    lanceWeight >= ModSettings.MaximumStartingWeight)
+                    lanceWeight >= ModSettings.MaximumStartingWeight ||
+                    mechQuery.Count() == 0 &&
+                    lanceWeight < ModSettings.MinimumStartingWeight)
                 {
                     LogDebug("[BAD LANCE]");
                     lance.Clear();
                     lanceWeight = 0;
                     HandleAncestral(lance, ref lanceWeight);
+                }
+                else
+                {
+                    LogDebug("Still trying to build...");
+                    LogDebug($"Mechs: {lance.Count} ({lanceWeight}T)\n" +
+                             $"lance.Count < ModSettings.MinimumLanceSize {lance.Count < ModSettings.MinimumLanceSize}\n" +
+                             $"lanceWeight <= ModSettings.MinimumStartingWeight {lanceWeight <= ModSettings.MinimumStartingWeight}");
                 }
             }
 
@@ -291,7 +305,7 @@ namespace RandomCampaignStart
             }
 
             GenericPopupBuilder
-                .Create(GenericPopupType.Warning, "\n\nRandom lance creation failed due to constraints.\n\nDefault lance created.\n\n")
+                .Create(GenericPopupType.Warning, "\nRandom lance creation failed due to constraints.\n\nDefault lance created.\n")
                 .AddFader(new UIColorRef?(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill), 0.0f, true)
                 .IsNestedPopupWithBuiltInFader()
                 .AddButton("PROCEED")
