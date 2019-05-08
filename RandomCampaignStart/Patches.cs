@@ -86,6 +86,14 @@ namespace RandomCampaignStart
         }
     }
 
+    //public static class Extensions
+    //{
+    //    public static IEnumerable<MechDef> NotMyMechs(this IEnumerable<MechDef> sequence)
+    //    {
+    //        return sequence.Where(mech => sequence.All(x => x.Name != mech.Name));
+    //    }
+    //}
+
     public class PatchMethods
     {
         private static SimGameState Sim = UnityGameInstance.BattleTechGame.Simulation;
@@ -116,7 +124,7 @@ namespace RandomCampaignStart
                         // change pilot_sim_starter_medusa into PortraitPreset_medusa
                         var portraitString = string.Join("", new[] {"PortraitPreset_", pilotID.Split('_')[3]});
                         pilotDef.PortraitSettings = Sim.DataManager.PortraitSettings.Get(portraitString);
-                        LogDebug($"[ADD STARTER {pilotDef.Description.Callsign}]");
+                        LogDebug($"\tAdd starter ronin {pilotDef.Description.Callsign}");
                         Sim.AddPilotToRoster(pilotDef, true);
                     }
 
@@ -130,7 +138,7 @@ namespace RandomCampaignStart
                             ModSettings.NumberRandomRonin);
                     foreach (var pilotDef in randomRonin)
                     {
-                        LogDebug($"[ADD RONIN {pilotDef.Description.Callsign}]");
+                        LogDebug($"\tAdd ronin {pilotDef.Description.Callsign}");
                         Sim.AddPilotToRoster(pilotDef, true);
                     }
                 }
@@ -142,7 +150,7 @@ namespace RandomCampaignStart
                         0, 0, out _);
                     foreach (var pilotDef in randomProcedural)
                     {
-                        LogDebug($"[ADD PILOT {pilotDef.Description.Callsign}]");
+                        LogDebug($"\tAdd pilot {pilotDef.Description.Callsign}");
                         Sim.AddPilotToRoster(pilotDef, true);
                     }
                 }
@@ -154,7 +162,6 @@ namespace RandomCampaignStart
             var lance = new List<MechDef>();
             var lanceWeight = 0;
             var mechDefs = Sim.DataManager.MechDefs.Select(kvp => kvp.Value).ToList();
-
             var mechQuery = mechDefs
                 .Where(mech => mech.Chassis.Tonnage <= ModSettings.MaximumMechWeight &&
                                mech.Chassis.Tonnage + lanceWeight <= ModSettings.MaximumStartingWeight &&
@@ -178,15 +185,16 @@ namespace RandomCampaignStart
 
             HandleAncestral(lance, ref lanceWeight);
 
+            LogDebug("MechDefs: " + mechQuery.Count());
             while (lance.Count < ModSettings.MinimumLanceSize ||
-                   lanceWeight < ModSettings.MinimumStartingWeight)
+                   lanceWeight <= ModSettings.MinimumStartingWeight)
             {
-                LogDebug($"[MECHS IN LIST {mechQuery.Count()}]");
+                LogDebug($"[AVAILABLE MECHS {mechQuery.Count()}]");
                 // average weight of the mechs which fit
                 var avgWeight = mechQuery.Select(mech => mech.Chassis.Tonnage).Sum() / mechQuery.Count();
                 var weightDeficit = ModSettings.MinimumStartingWeight - lance.Select(mech => mech.Chassis.Tonnage).Sum();
                 var mostMechs = ModSettings.MaximumLanceSize - lance.Count;
-                LogDebug($"Average weight {avgWeight}, weightDeficit {weightDeficit} and can fit {mostMechs} mechs");
+                LogDebug($"Average weight {avgWeight} of available mechs, weightDeficit {weightDeficit} and can fit {mostMechs} mechs");
 
                 // this is the sanity clamp... anything unsolvable gets ignored
                 if (mechQuery.Count() == 0 ||
@@ -209,7 +217,7 @@ namespace RandomCampaignStart
                 {
                     lance.Add(mechDef);
                     lanceWeight += (int) mechDef.Chassis.Tonnage;
-                    LogDebug($"[ADDING {mechDef.Description.Id}]");
+                    LogDebug($"\tAdding {mechDef.Description.Id}]");
                 }
                 else
                 {
@@ -219,41 +227,36 @@ namespace RandomCampaignStart
                     {
                         LogDebug("[BAD LANCE]");
                         lance.Clear();
-                        HandleAncestral(lance, ref lanceWeight);
                         lanceWeight = 0;
+                        HandleAncestral(lance, ref lanceWeight);
                         continue;
                     }
                 }
 
-                LogDebug($"[TONS {lanceWeight} MECHS {lance.Count}]");
+                LogDebug($"[MECHS: {lance.Count} TONS: {lanceWeight}]");
                 if (lance.Count == ModSettings.MaximumLanceSize &&
                     lanceWeight < ModSettings.MinimumStartingWeight ||
                     lance.Count < ModSettings.MinimumLanceSize &&
-                    lanceWeight >= ModSettings.MinimumStartingWeight)
+                    lanceWeight >= ModSettings.MaximumStartingWeight)
                 {
                     LogDebug("[BAD LANCE]");
                     lance.Clear();
-                    HandleAncestral(lance, ref lanceWeight);
                     lanceWeight = 0;
+                    HandleAncestral(lance, ref lanceWeight);
                 }
             }
 
             LogDebug("[COMPLETE: ADDING MECHS]");
-            foreach (var pilot in Sim.PilotRoster)
-            {
-                LogDebug($"Pilot {pilot.Callsign}");
-            }
-
             var sb = new StringBuilder();
             for (var x = 0; x < lance.Count; x++)
             {
                 sb.AppendLine($"{lance[x].Chassis.VariantName} {lance[x].Name} ({((DateTime) lance[x].MinAppearanceDate).Year}) {lance[x].Chassis.Tonnage}T ({lance[x].Chassis.weightClass})");
-                LogDebug($"Mech {x + 1} {lance[x].Name,-15} {lance[x].Chassis.VariantName,-10} {((DateTime) lance[x].MinAppearanceDate).Year,5} ({lance[x].Chassis.weightClass} {lance[x].Chassis.Tonnage}T)");
+                LogDebug($"\tMech {x + 1} {lance[x].Name,-15} {lance[x].Chassis.VariantName,-10} {((DateTime) lance[x].MinAppearanceDate).Year,5} ({lance[x].Chassis.weightClass} {lance[x].Chassis.Tonnage}T)");
                 Sim.AddMech(x, lance[x], true, true, false);
             }
 
             var tonnage = lance.GroupBy(x => x).Select(mech => mech.Key.Chassis.Tonnage).Sum();
-            LogDebug($"[TONNAGE {tonnage}]");
+            LogDebug($"[LANCE TONNAGE {tonnage}]");
             if (ModSettings.Reroll)
             {
                 GenericPopupBuilder
@@ -288,7 +291,7 @@ namespace RandomCampaignStart
             }
 
             GenericPopupBuilder
-                .Create(GenericPopupType.Warning, "Random lance creation failed due to constraints.\nDefault lance created.")
+                .Create(GenericPopupType.Warning, "\n\nRandom lance creation failed due to constraints.\n\nDefault lance created.\n\n")
                 .AddFader(new UIColorRef?(LazySingletonBehavior<UIManager>.Instance.UILookAndColorConstants.PopupBackfill), 0.0f, true)
                 .IsNestedPopupWithBuiltInFader()
                 .AddButton("PROCEED")
@@ -317,9 +320,10 @@ namespace RandomCampaignStart
             }
             else
             {
-                LogDebug($"[ADD ANCESTRAL {AncestralMechDef.Name}]");
+                LogDebug($"\tAdd ancestral {AncestralMechDef.Name}");
                 lance.Add(AncestralMechDef);
                 lanceWeight += (int) AncestralMechDef.Chassis.Tonnage;
+                LogDebug($"[MECHS: {lance.Count} TONS: {lanceWeight}]");
             }
         }
 
