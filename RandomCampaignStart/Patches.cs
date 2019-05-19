@@ -324,7 +324,7 @@ namespace RandomCampaignStart
 
         private static void HandleAncestral(List<MechDef> lance, ref int lanceWeight)
         {
-            if (ModSettings.RemoveAncestralMech)
+            if (ModSettings.RemoveAncestralMech || (AncestralMechDef.Description.Id == "mechdef_centurion_TARGETDUMMY"))
             {
                 RemoveAncestralMech();
             }

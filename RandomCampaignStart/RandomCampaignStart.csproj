@@ -61,7 +61,6 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>
-      copy /y $(TargetPath) N:\SteamLibrary\steamapps\common\BATTLETECH\Mods\RandomCampaignStart
     </PostBuildEvent>
   </PropertyGroup>
 </Project>
