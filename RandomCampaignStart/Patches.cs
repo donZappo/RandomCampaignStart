@@ -181,7 +181,7 @@ namespace RandomCampaignStart
             if (ModSettings.MechsAdhereToTimeline)
             {
                 mechQuery = mechQuery
-                    .Where(mech => mech.MinAppearanceDate <= Sim.CampaignStartDate);
+                    .Where(mech => mech.MinAppearanceDate <= Sim.GetCampaignStartDate());
             }
 
             HandleAncestral(lance, ref lanceWeight);
