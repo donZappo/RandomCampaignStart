@@ -1,13 +1,13 @@
 {
-  "Name": "FullRandomCampaignStart",
-  "DLL": "RandomCampaignStart.dll",
+  "Name": "FullRandomCareerStart",
+  "DLL": "RandomCareerStart.dll",
 
   "Version": "1.0",
   "Description": "Randomizes the starting mechwarriors and mechs.",
   "Author": "mpstark, modified by gnivler and don Zappo",
-  "Website": "www.github.com/mpstark/RandomCampaignStart",
+  "Website": "www.github.com/mpstark/RandomCareerStart",
 
-  "ConflictsWith": [ "RandomCampaignStart" ],
+  "ConflictsWith": [ "RandomCareerStart" ],
 
   "Settings": {
     /* Global toggles that effect both types of randomizers. FullRandomMode: true for complete randomization, false for Original Method Randomization.*/	

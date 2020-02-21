@@ -13,7 +13,7 @@ using System.Linq;
 // ReSharper disable UnusedMember.Global
 
 
-namespace RandomCampaignStart
+namespace RandomCareerStart
 {
     [HarmonyPatch(typeof(SimGameState), "AddCareerMechs")]
     public static class SimGameState_AddCareerMechs_Patch
@@ -380,7 +380,7 @@ namespace RandomCampaignStart
 
             public static void Init(string modDir, string modSettings)
             {
-                var harmony = HarmonyInstance.Create("io.github.mpstark.RandomCampaignStart");
+                var harmony = HarmonyInstance.Create("io.github.mpstark.RandomCareerStart");
                 harmony.PatchAll(Assembly.GetExecutingAssembly());
 
                 // read settings
