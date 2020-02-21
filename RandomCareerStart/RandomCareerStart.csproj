@@ -55,11 +55,6 @@
     <Compile Include="RNGStart.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <AdditionalFiles Include="mod.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </AdditionalFiles>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy "$(TargetPath)" "C:\Program Files (x86)\Steam\steamapps\common\BATTLETECH\Mods\RandomCareerStart" /Y
