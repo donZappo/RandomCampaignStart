@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27703.2000
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29201.188
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RandomCampaignStart", "RandomCampaignStart\RandomCampaignStart.csproj", "{20CEF650-C940-4B2A-BB30-F382B3778C6E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RandomCareerStart", "RandomCampaignStart\RandomCareerStart.csproj", "{20CEF650-C940-4B2A-BB30-F382B3778C6E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
