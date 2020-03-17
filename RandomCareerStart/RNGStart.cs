@@ -87,6 +87,11 @@ namespace RandomCareerStart
                 //Trim the lists.
                 foreach (var kvp in __instance.DataManager.ChassisDefs)
                 {
+                    if (!__instance.DataManager.Exists(BattleTechResourceType.MechDef, kvp.Key.Replace("chassisdef", "mechdef")))
+                    {
+                        continue;
+                    }
+                    
                     if (kvp.Key.Contains("DUMMY") && !kvp.Key.Contains("CUSTOM"))
                     {
                         // just in case someone calls their mech DUMMY
