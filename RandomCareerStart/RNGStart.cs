@@ -337,13 +337,18 @@ namespace RandomCareerStart
 
             if (RngStart.Settings.NumberProceduralPilots > 0)
             {
-                List<PilotDef> list3;
-                List<PilotDef> collection = sim.PilotGenerator.GeneratePilots(RngStart.Settings.NumberProceduralPilots, 1, 0f, out list3);
-                list.AddRange(collection);
-            }
-            foreach (PilotDef def in list)
-            {
-                sim.AddPilotToRoster(def, true, true);
+                List<PilotDef> list3 = new List<PilotDef>();
+                int f = 0;
+                while (f < RngStart.Settings.NumberProceduralPilots)
+                {
+                    PilotDef pilotDef = sim.PilotGenerator.GeneratePilots(1, 1, 0f, out list3)[0];
+                    if (sim.CanPilotBeCareerModeStarter(pilotDef))
+                    {
+                        pilotDef.SetDayOfHire(sim.DaysPassed);
+                        sim.AddPilotToRoster(pilotDef, false, true);
+                        f++;
+                    }
+                }
             }
         }
 
