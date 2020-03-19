@@ -84,10 +84,18 @@ namespace RandomCareerStart
                 var mechTonnages = new Dictionary<string, float>();
 
                 Logger.Debug($"A");
+                var startDate = __instance.GetCampaignStartDate();
                 //Trim the lists.
                 foreach (var kvp in __instance.DataManager.ChassisDefs)
                 {
-                    if (!__instance.DataManager.Exists(BattleTechResourceType.MechDef, kvp.Key.Replace("chassisdef", "mechdef")))
+                    var mechDefId = kvp.Key.Replace("chassisdef", "mechdef");
+                    if (!__instance.DataManager.Exists(BattleTechResourceType.MechDef, mechDefId))
+                    {
+                        continue;
+                    }
+
+                    var minAppearanceDate = __instance.DataManager.MechDefs.Get(mechDefId).MinAppearanceDate;
+                    if (minAppearanceDate.HasValue && minAppearanceDate > startDate)
                     {
                         continue;
                     }
@@ -99,6 +107,7 @@ namespace RandomCareerStart
                     }
                     if (kvp.Key.Contains("CUSTOM") || kvp.Key.Contains("DUMMY"))
                         continue;
+                    
                     if (RngStart.Settings.MaximumMechWeight != 100)
                         if (kvp.Value.Tonnage > RngStart.Settings.MaximumMechWeight || kvp.Value.Tonnage < 20)
                             continue;
