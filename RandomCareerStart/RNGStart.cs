@@ -154,6 +154,7 @@ namespace RandomCareerStart
                     bool dupe = false;
                     bool excluded = false;
                     bool blacklisted = false;
+                    int RVMechCount = 0;
                     while (minLanceSize > lance.Count || currentLanceWeight < RngStart.Settings.MinimumStartingWeight)
                     {
                         Logger.Debug($"F");
@@ -224,7 +225,8 @@ namespace RandomCareerStart
                                 }
                             }
                         }
-
+                        if (mechDef.Description.Name.Contains("-RV"))
+                            RVMechCount++;
 
                         // does the mech fit into the lance?
                         
@@ -244,7 +246,7 @@ namespace RandomCareerStart
                                 $"before lower limit hit: {Math.Max(0, RngStart.Settings.MinimumStartingWeight - currentLanceWeight)}");
                         }
                         // invalid lance, reset
-                        if (currentLanceWeight > RngStart.Settings.MaximumStartingWeight || lance.Count > maxLanceSize || dupe || blacklisted || excluded || firstTargetRun)
+                        if (currentLanceWeight > RngStart.Settings.MaximumStartingWeight || lance.Count > maxLanceSize || dupe || blacklisted || excluded || firstTargetRun || RVMechCount > 1)
                         {
                             Logger.Debug($"Clearing invalid lance");
                             currentLanceWeight = StarterMechTonnage;
@@ -254,6 +256,7 @@ namespace RandomCareerStart
                             blacklisted = false;
                             excluded = false;
                             firstTargetRun = false;
+                            RVMechCount = 0;
                             LanceCounter++;
                             continue;
                         }
