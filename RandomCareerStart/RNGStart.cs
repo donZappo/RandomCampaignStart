@@ -155,6 +155,9 @@ namespace RandomCareerStart
                     bool excluded = false;
                     bool blacklisted = false;
                     int RVMechCount = 0;
+                    int MediumMechCount = 0;
+                    int GhettoCount = 0;
+
                     while (minLanceSize > lance.Count || currentLanceWeight < RngStart.Settings.MinimumStartingWeight)
                     {
                         Logger.Debug($"F");
@@ -225,8 +228,14 @@ namespace RandomCareerStart
                                 }
                             }
                         }
-                        if (mechDef.Description.Name.Contains("-RV"))
+                        if (mechDef.Description.UIName.Contains("-RV") && RngStart.Settings.LimitRVMechs)
                             RVMechCount++;
+
+                        if (mechDef.Chassis.weightClass == WeightClass.MEDIUM && RngStart.Settings.ForceSingleMedium)
+                            MediumMechCount++;
+
+                        if (mechDef.Chassis.Tonnage == 20)
+                            GhettoCount++;
 
                         // does the mech fit into the lance?
                         
@@ -245,8 +254,9 @@ namespace RandomCareerStart
                                 $"tonnage remaining: {RngStart.Settings.MaximumStartingWeight - currentLanceWeight}. " +
                                 $"before lower limit hit: {Math.Max(0, RngStart.Settings.MinimumStartingWeight - currentLanceWeight)}");
                         }
+
                         // invalid lance, reset
-                        if (currentLanceWeight > RngStart.Settings.MaximumStartingWeight || lance.Count > maxLanceSize || dupe || blacklisted || excluded || firstTargetRun || RVMechCount > 1)
+                        if (currentLanceWeight > RngStart.Settings.MaximumStartingWeight || lance.Count > maxLanceSize || dupe || blacklisted || excluded || firstTargetRun || RVMechCount > 1 || (LanceCounter >= minLanceSize && MediumMechCount != 1) || GhettoCount > 1)
                         {
                             Logger.Debug($"Clearing invalid lance");
                             currentLanceWeight = StarterMechTonnage;
@@ -258,6 +268,8 @@ namespace RandomCareerStart
                             firstTargetRun = false;
                             RVMechCount = 0;
                             LanceCounter++;
+                            MediumMechCount = 0;
+                            GhettoCount = 0;
                             continue;
                         }
 
@@ -279,6 +291,7 @@ namespace RandomCareerStart
                 }
             }
         }
+
 
         [HarmonyPatch(typeof(SimGameState), "_OnDefsLoadComplete")]
         public static class Initialize_New_Game
@@ -393,6 +406,8 @@ namespace RandomCareerStart
             public int Loops = 1;
 
             public bool UseRandomMechs = true;
+            public bool LimitRVMechs = true;
+            public bool ForceSingleMedium = true;
 
         }
 
