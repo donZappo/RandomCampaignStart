@@ -256,7 +256,7 @@ namespace RandomCareerStart
                         }
 
                         // invalid lance, reset
-                        if (currentLanceWeight > RngStart.Settings.MaximumStartingWeight || lance.Count > maxLanceSize || dupe || blacklisted || excluded || firstTargetRun || RVMechCount > 1 || (LanceCounter >= minLanceSize && MediumMechCount != 1) || GhettoCount > 1)
+                        if (currentLanceWeight > RngStart.Settings.MaximumStartingWeight || lance.Count > maxLanceSize || dupe || blacklisted || excluded || firstTargetRun || RVMechCount > 1 || (lance.Count >= minLanceSize && MediumMechCount != 1) || GhettoCount > 1)
                         {
                             Logger.Debug($"Clearing invalid lance");
                             currentLanceWeight = StarterMechTonnage;
@@ -268,7 +268,10 @@ namespace RandomCareerStart
                             firstTargetRun = false;
                             RVMechCount = 0;
                             LanceCounter++;
-                            MediumMechCount = 0;
+                            if (StarterMechTonnage > 35)
+                                MediumMechCount = 1;
+                            else
+                                MediumMechCount = 0;
                             GhettoCount = 0;
                             continue;
                         }
