@@ -219,7 +219,7 @@ namespace RandomCareerStart
                         {
                             foreach (var mech in lance)
                             {
-                                if (mech == mechDef.Description.Id)
+                                if (mech.Substring(0,12) == mechDef.Description.Id.Substring(0,12))
                                 {
                                     currentLanceWeight = 0;
                                     dupe = true;
