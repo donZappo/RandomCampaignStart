@@ -219,11 +219,12 @@ namespace RandomCareerStart
                         {
                             foreach (var mech in lance)
                             {
+                                Logger.Debug("Mech Chassis Comparer");
+                                Logger.Debug(mech.Substring(0, 12) + ":" + mechDef.Description.Id.Substring(0, 12));
                                 if (mech.Substring(0,12) == mechDef.Description.Id.Substring(0,12))
                                 {
                                     currentLanceWeight = 0;
                                     dupe = true;
-
                                     Logger.Debug($"SAME SAME!");
                                 }
                             }
