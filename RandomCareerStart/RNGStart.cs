@@ -157,8 +157,9 @@ namespace RandomCareerStart
                     int RVMechCount = 0;
                     int MediumMechCount = 0;
                     int GhettoCount = 0;
+                    int expandedWeight = 0;
 
-                    while (minLanceSize > lance.Count || currentLanceWeight < RngStart.Settings.MinimumStartingWeight)
+                    while (minLanceSize > lance.Count || currentLanceWeight < (RngStart.Settings.MinimumStartingWeight - expandedWeight))
                     {
                         Logger.Debug($"F");
                         #region Def listing loops
@@ -257,7 +258,7 @@ namespace RandomCareerStart
                         }
 
                         // invalid lance, reset
-                        if (currentLanceWeight > RngStart.Settings.MaximumStartingWeight || lance.Count > maxLanceSize || dupe || blacklisted || excluded || firstTargetRun || RVMechCount > 1 || (lance.Count >= minLanceSize && MediumMechCount != 1) || GhettoCount > 1)
+                        if (currentLanceWeight > (RngStart.Settings.MaximumStartingWeight + expandedWeight) || lance.Count > maxLanceSize || dupe || blacklisted || excluded || firstTargetRun || RVMechCount > 1 || (lance.Count >= minLanceSize && MediumMechCount != 1) || GhettoCount > 1)
                         {
                             Logger.Debug($"Clearing invalid lance");
                             currentLanceWeight = StarterMechTonnage;
@@ -274,6 +275,8 @@ namespace RandomCareerStart
                             else
                                 MediumMechCount = 0;
                             GhettoCount = 0;
+                            if (xloop > RngStart.Settings.Loops / 2)
+                                expandedWeight = 5;
                             continue;
                         }
 
